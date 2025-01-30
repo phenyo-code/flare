@@ -32,7 +32,7 @@ const AdminHeader = () => {
         {/* Admin Menu Links */}
         <ul className="flex flex-col m-0 p-0">
           <li className="py-4 px-6 border-b border-gray-200">
-            <Link href="/admin/dashboard" className="text-gray-800">Dashboard</Link>
+            <Link href="/admin" className="text-gray-800">Dashboard</Link>
           </li>
           <li className="py-4 px-6 border-b border-gray-200">
             <Link href="/products" className="text-gray-800">Manage Products</Link>
@@ -44,13 +44,10 @@ const AdminHeader = () => {
             <Link href="/admin/orders" className="text-gray-800">Orders</Link>
           </li>
           <li className="py-4 px-6 border-b border-gray-200">
-            <Link href="/admin/customers" className="text-gray-800">Customers</Link>
-          </li>
-          <li className="py-4 px-6 border-b border-gray-200">
             <Link href="/admin/settings" className="text-gray-800">Settings</Link>
           </li>
           <li className="py-4 px-6 border-b border-gray-200">
-            <Link href="/admin/logout" className="text-gray-800">Logout</Link>
+            <Link href="/" className="text-gray-800">Back To Store</Link>
           </li>
         </ul>
       </div>
