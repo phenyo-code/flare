@@ -20,3 +20,48 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* globals.css or tailwind.css */
+
+.header-categories-row::-webkit-scrollbar {
+  display: none;
+}
+
+.header-categories-row {
+  -ms-overflow-style: none;  /* For Internet Explorer and Edge */
+  scrollbar-width: none;      /* For Firefox */
+}
+
+/* Custom CSS for column-based layout and masonry effect */
+
+/* On small screens, 1 column with masonry layout */
+@media screen and (max-width: 640px) {
+  .columns-1 {
+    column-count: 2;  /* 2 items per row on mobile */
+    column-gap: 8px; /* Adjust the gap between columns */
+  }
+}
+
+/* For tablets and up, 2 items per row */
+@media screen and (min-width: 640px) {
+  .columns-2 {
+    column-count: 2; /* 2 items per row on tablets */
+    column-gap: 8px;
+  }
+}
+
+/* For large screens, 3 items per row */
+@media screen and (min-width: 1024px) {
+  .columns-3 {
+    column-count: 3; /* 3 items per row on large screens */
+    column-gap: 8px;
+  }
+}
+
+/* For extra-large screens, 4 items per row */
+@media screen and (min-width: 1280px) {
+  .columns-4 {
+    column-count: 4; /* 4 items per row on extra large screens */
+    column-gap: 8px;
+  }
+}

@@ -8,7 +8,7 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <div className="header w-full bg-white flex flex-col shadow-md box-border">
+    <div className="header w-full bg-white flex flex-col box-border">
       {/* Top Row */}
       <div className="header-top-row flex justify-between items-center py-2 px-4">
         {/* Logo */}
@@ -19,7 +19,7 @@ const Header = () => {
         </div>
 
         {/* Icons */}
-        <div className="header-icons flex items-center space-x-6">
+        <div className="header-icons flex items-center space-x-4 ">
           <Link href="/search">
             <FiSearch className="text-gray-600 text-2xl cursor-pointer" />
           </Link>
@@ -33,14 +33,6 @@ const Header = () => {
         </div>
       </div>
 
-      {/* Categories Row */}
-      <div className="header-categories-row uppercase flex font-bold justify-between  mb-0 items-center py-4 px-4">
-        <button className="category-tab flex-1 text-center">WOMEN</button>
-        <button className="category-tab flex-1 text-center">MEN</button>
-        <button className="category-tab flex-1 text-center">BRANDS</button>
-        <button className="category-tab flex-1 text-center">HOME</button>
-        <button className="category-tab flex-1 text-center">JEWELRY</button>
-      </div>
 
       {/* Side Menu (From Right) */}
       <div className={`fixed top-0 right-0 w-64 h-full bg-white text-black z-50 transition-transform duration-300 ease-in-out shadow-lg ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
