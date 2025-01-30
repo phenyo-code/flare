@@ -34,12 +34,12 @@ const Header = () => {
       </div>
 
       {/* Categories Row */}
-      <div className="header-categories-row flex justify-between items-center py-4 px-4">
-        <button className="category-tab flex-1 text-center">Women</button>
-        <button className="category-tab flex-1 text-center">Men</button>
-        <button className="category-tab flex-1 text-center">Brands</button>
-        <button className="category-tab flex-1 text-center">Home</button>
-        <button className="category-tab flex-1 text-center">Jewellery</button>
+      <div className="header-categories-row uppercase flex font-bold justify-between  mb-0 items-center py-4 px-4">
+        <button className="category-tab flex-1 text-center">WOMEN</button>
+        <button className="category-tab flex-1 text-center">MEN</button>
+        <button className="category-tab flex-1 text-center">BRANDS</button>
+        <button className="category-tab flex-1 text-center">HOME</button>
+        <button className="category-tab flex-1 text-center">JEWELRY</button>
       </div>
 
       {/* Side Menu (From Right) */}

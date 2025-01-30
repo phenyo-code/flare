@@ -35,7 +35,10 @@ const AdminHeader = () => {
             <Link href="/admin/dashboard" className="text-gray-800">Dashboard</Link>
           </li>
           <li className="py-4 px-6 border-b border-gray-200">
-            <Link href="/admin/products" className="text-gray-800">Manage Products</Link>
+            <Link href="/products" className="text-gray-800">Manage Products</Link>
+          </li>
+          <li className="py-4 px-6 border-b border-gray-200">
+            <Link href="/add-product" className="text-gray-800">Add Product</Link>
           </li>
           <li className="py-4 px-6 border-b border-gray-200">
             <Link href="/admin/orders" className="text-gray-800">Orders</Link>

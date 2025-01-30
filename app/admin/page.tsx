@@ -15,14 +15,14 @@ export default function AdminDashboard() {
           href="/add-product"
           className="block w-full bg-blue-500 text-white text-center p-3 rounded-md hover:bg-blue-600"
         >
-          ➕ Add Product
+          + Add Product
         </Link>
 
         <Link
-          href="/admin/products"
+          href="/products"
           className="block w-full bg-gray-500 text-white text-center p-3 rounded-md hover:bg-gray-600"
         >
-          📦 Manage Products
+           Manage Products
         </Link>
       </div>
     </div>
