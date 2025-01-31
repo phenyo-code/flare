@@ -9,6 +9,7 @@ interface ProductCardProps {
 export default function ProductCard({ product }: ProductCardProps) {
   return (
     <div className="product-card shadow-md">
+      <Link href={`/product/${product.id}`}>
       <Image
         src={product.image}
         alt={product.name}
@@ -20,9 +21,6 @@ export default function ProductCard({ product }: ProductCardProps) {
         {product.name}
       </p>
       <p className="font-semibold text-sm px-2 text-red-400">R{product.price}</p>
-      {/* Removed <a> tag, directly using Link */}
-      <Link href={`/product/${product.id}`} className="text-blue-500 px-2">
-        View Details
       </Link>
     </div>
   );

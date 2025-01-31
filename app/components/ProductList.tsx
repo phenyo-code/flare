@@ -1,5 +1,7 @@
 import ProductCard from "./ProductCard";
 import { Product } from "@prisma/client";
+import { FiSearch } from "react-icons/fi"; // Search Icon
+import { IoMdSad } from "react-icons/io"; // Sad face icon
 
 interface ProductListProps {
   products: Product[];
@@ -7,7 +9,12 @@ interface ProductListProps {
 
 export default function ProductList({ products }: ProductListProps) {
   if (!products || products.length === 0) {
-    return <p>No products available.</p>;
+    return (
+      <div className="flex flex-col items-center justify-center text-center mt-10">
+        <IoMdSad className="text-4xl text-gray-500 mb-2" /> {/* Sad face icon */}
+        <h3 className="text-xl font-regular text-gray-600">No products found</h3>
+      </div>
+    );
   }
 
   return (
