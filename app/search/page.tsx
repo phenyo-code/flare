@@ -74,7 +74,7 @@ export default function SearchPage() {
             onChange={(e) => setQuery(e.target.value)}
             className="w-full p-2 text-gray-800 outline-none"
           />
-          <button type="submit" className="bg-black text-white p-2">
+          <button type="submit" className="bg-black h-10 text-white p-2">
             <FiSearch className="text-xl" />
           </button>
         </form>
@@ -82,7 +82,7 @@ export default function SearchPage() {
 
       {/* Conditionally render Popular Searches or Search Results */}
       {query === "" && (
-        <div className="mt-14">
+        <div className="mt-14 pb-60">
           <h3 className="text-xl font-bold mt-6 mb-4">Popular Searches</h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {popularSearches.map((search) => (

@@ -1,11 +1,16 @@
-// app/product/[id]/page.tsx
 import { prisma } from "../../lib/db/prisma";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../../api/auth/[...nextauth]/route";
 import Image from "next/image";
 import Link from "next/link";
 import AddToCartButton from "./AddToCartButton";
 import SearchHeader from "../../components/SearchHeader";
+import Footer from "../../components/Footer";
 
 export default async function ProductDetails({ params }: { params: { id: string } }) {
+    // Fetch user session
+    const session = await getServerSession(authOptions);
+
     // Fetch the product from the database
     const product = await prisma.product.findUnique({
         where: { id: params.id },
@@ -15,15 +20,26 @@ export default async function ProductDetails({ params }: { params: { id: string 
         return <p>Product not found.</p>;
     }
 
-    // Fetch or create a cart for the user
-    let cart = await prisma.cart.findFirst();
-    if (!cart) {
-        cart = await prisma.cart.create({ data: {} });
+    // Fetch or create a cart for the logged-in user
+    let cart = null;
+    if (session && session.user) {
+        cart = await prisma.cart.findFirst({
+            where: { userId: session.user.id },
+        });
+
+        if (!cart) {
+            cart = await prisma.cart.create({
+                data: { userId: session.user.id, createdAt: new Date() },
+            });
+        }
     }
 
     return (
+
         <div>
+            {/* Always show the header */}
             <SearchHeader />
+
             <div className="container mx-auto">
                 <div className="flex flex-col lg:flex-row">
                     <div className="w-full lg:w-1/2 flex justify-center">
@@ -40,17 +56,24 @@ export default async function ProductDetails({ params }: { params: { id: string 
                         <h2 className="text-3xl font-semibold">{product.name}</h2>
                         <p className="text-lg text-red-500 mt-2">R{product.price}</p>
 
-                        {/* Pass the correct cartId to the button */}
-                        <AddToCartButton productId={product.id} cartId={cart.id} />
-
-                        <div className="mt-4">
-                            <Link href="/products" className="text-blue-500 inline-block">
-                                Back to Products
-                            </Link>
-                        </div>
+                        {/* Add to Cart button (only if user is logged in) */}
+                        {session && session.user ? (
+                            <AddToCartButton productId={product.id} cartId={cart.id} />
+                        ) : (
+                            <div className="text-center mt-10 ">
+                                <p className="text-lg text-gray-600">You need to log in to add items to the cart.</p>
+                                <Link href="/login">
+                                    <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-6 mt-4">
+                                        Login
+                                    </button>
+                                </Link>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
+
+            <Footer />
         </div>
     );
 }

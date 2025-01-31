@@ -1,4 +1,3 @@
-// manage-orders.tsx - Admin order management page
 import { prisma } from "../lib/db/prisma";
 import { redirect } from "next/navigation";
 import AdminHeader from "../components/AdminHeader";
@@ -35,8 +34,11 @@ export default async function ManageOrdersPage({
 }) {
   const success = searchParams?.success === "true";
 
-  // Fetch all orders
+  // Fetch all orders and order them by creation date in descending order
   const orders = await prisma.order.findMany({
+    orderBy: {
+      createdAt: "desc", // Sort orders by creation date in descending order
+    },
     include: {
       items: {
         include: {
@@ -66,7 +68,7 @@ export default async function ManageOrdersPage({
             <div key={order.id} className="mb-6">
               <h3 className="font-semibold">Order ID: {order.id}</h3>
               <p>Status: {order.status}</p>
-              <p>Total Price: ${order.totalPrice}</p>
+              <p>Total Price: R{order.totalPrice}</p>
 
               <div className="mt-4">
                 <h4 className="font-semibold">Items:</h4>
@@ -89,7 +91,7 @@ export default async function ManageOrdersPage({
                       <div className="flex-1">
                         <span className="font-semibold">{item.product.name}</span>
                         <div className="text-sm text-gray-600">
-                          {item.quantity} x ${item.price}
+                          {item.quantity} x R{item.price}
                         </div>
                       </div>
                     </li>

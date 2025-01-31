@@ -22,9 +22,9 @@ export default function OrderSuccessPage() {
         <div className="flex justify-center mt-6">
           <a
             href="/"
-            className="w-full md:w-1/2 bg-blue-500 text-white p-2 rounded-md text-center"
+            className="w-full md:w-1/2 bg-black text-white p-2 rounded-md text-center"
           >
-            Return to Shop
+            Continue Shopping
           </a>
         </div>
       </div>

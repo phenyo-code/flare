@@ -25,7 +25,7 @@ export default function AddToCartButton({ productId, cartId }: AddToCartButtonPr
 
     return (
         <button
-            className={`font-bold py-2 px-4 rounded ${
+            className={`font-bold py-2 px-4 ${
                 isAdded ? "bg-green-500 cursor-not-allowed" : "bg-red-500 hover:bg-red-700"
             } text-white`}
             onClick={handleAddToCart}

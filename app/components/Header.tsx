@@ -3,10 +3,14 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { FiSearch, FiShoppingCart, FiMenu, FiX } from "react-icons/fi";
+import { useSession, signOut } from "next-auth/react"; // Import useSession and signOut
+import { useRouter } from "next/navigation";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [cartItems, setCartItems] = useState<number>(0); // Start with 0 items in cart
+  const { data: session } = useSession();  // Fetch session data using useSession
+  const router = useRouter();
 
   // Fetch the cart item count when the component mounts
   useEffect(() => {
@@ -27,8 +31,15 @@ const Header = () => {
     fetchCartItemCount();
   }, []); // Empty dependency array to fetch only once on component mount
 
+  // Handle sign out
+  const handleSignOut = () => {
+    signOut({ redirect: false }).then(() => {
+      router.push("/login");  // Redirect to login page after sign-out
+    });
+  };
+
   return (
-    <div className="header w-full  bg-white flex flex-col box-border">
+    <div className="header w-full bg-white flex flex-col box-border">
       {/* Top Row */}
       <div className="header-top-row flex justify-between items-center py-2 px-4">
         {/* Logo */}
@@ -49,13 +60,14 @@ const Header = () => {
           <div className="cart-icon relative">
             <Link href="/cart">
               <FiShoppingCart className="text-gray-600 text-2xl cursor-pointer" />
-            </Link>
+            
             {/* Show the cart item count as a very small bubble */}
             {cartItems > 0 && (
               <span className="absolute top-[-6] right-[-3] w-3.5 h-3.5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
                 {cartItems}
               </span>
             )}
+            </Link>
           </div>
           {/* Menu Icon */}
           <FiMenu
@@ -107,12 +119,32 @@ const Header = () => {
             </Link>
           </li>
 
-          {/* Admin Link */}
-          <li className="py-4 px-6 border-b border-gray-200">
-            <Link href="/admin" className="text-gray-800">
-              Admin Dashboard
-            </Link>
-          </li>
+          {/* Conditionally show the Admin link if the user is an admin */}
+          
+            <li className="py-4 px-6 border-b border-gray-200">
+              <Link href="/admin" className="text-gray-800">
+                Admin Dashboard
+              </Link>
+            </li>
+         
+
+          {/* Conditionally show the logout or login button */}
+          {session ? (
+            <li className="py-4 px-6 border-b border-gray-200">
+              <a
+        href="/signout"
+        className="mt-4 w-full  text-gray-800 p-2 "
+      >
+        Logout
+      </a>
+            </li>
+          ) : (
+            <li className="py-4 px-6 border-b border-gray-200">
+              <Link href="/login" className="text-gray-800">
+                Login
+              </Link>
+            </li>
+          )}
         </ul>
       </div>
     </div>

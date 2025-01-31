@@ -1,4 +1,4 @@
-// Import necessary libraries
+// Import necessary libraries 
 import { redirect } from "next/navigation";
 import { prisma } from "../lib/db/prisma";
 import SearchHeader from "../components/SearchHeader";
@@ -80,73 +80,78 @@ export async function PlaceOrder(formData: FormData) {
     data: { items: { deleteMany: {} } },
   });
 
-  // Redirect to the success page
-  redirect("/order-success");
+  // Redirect to the success page after placing the order
+  redirect("/order-success?status=pending");
 }
 
-export default function CheckoutPage({ searchParams }: { searchParams: { success?: string } }) {
+export default function CheckoutPage({ searchParams }: { searchParams: { success?: string, status?: string } }) {
   const success = searchParams?.success === "true";
+  const status = searchParams?.status;
 
   return (
     <div>
       <SearchHeader />
-    <div className="max-w-lg mt-10 mx-auto p-6 bg-white shadow-md rounded-lg">
-      <h2 className="text-2xl font-bold mb-4">Checkout</h2>
+      <div className="max-w-lg mt-10 mx-auto p-6 bg-white shadow-md rounded-lg">
+        <h2 className="text-2xl font-bold mb-4">Checkout</h2>
 
-      {/* Display success message */}
-      {success && (
-        <p className="mb-4 p-2 text-center text-white bg-green-500 rounded-md">
-          ✅ Order placed successfully!
-        </p>
-      )}
+        {/* Display success message */}
+        {success && (
+          <p className="mb-4 p-2 text-center text-white bg-green-500 rounded-md">
+            ✅ Order placed successfully!
+          </p>
+        )}
 
-      <form action={PlaceOrder}>
-        <div className="mb-4">
-          <label htmlFor="shippingName" className="block text-sm font-medium text-gray-700">
-            Full Name
-          </label>
-          <input
-            type="text"
-            id="shippingName"
-            name="shippingName"
-            className="w-full p-2 mt-1 border border-gray-300 rounded-md"
-            required
-          />
-        </div>
+        <form action={PlaceOrder}>
+          <div className="mb-4">
+            <label htmlFor="shippingName" className="block text-sm font-medium text-gray-700">
+              Full Name
+            </label>
+            <input
+              type="text"
+              id="shippingName"
+              name="shippingName"
+              className="w-full p-2 mt-1 border border-gray-300 rounded-md"
+              required
+            />
+          </div>
 
-        <div className="mb-4">
-          <label htmlFor="shippingEmail" className="block text-sm font-medium text-gray-700">
-            Email Address
-          </label>
-          <input
-            type="email"
-            id="shippingEmail"
-            name="shippingEmail"
-            className="w-full p-2 mt-1 border border-gray-300 rounded-md"
-            required
-          />
-        </div>
+          <div className="mb-4">
+            <label htmlFor="shippingEmail" className="block text-sm font-medium text-gray-700">
+              Email Address
+            </label>
+            <input
+              type="email"
+              id="shippingEmail"
+              name="shippingEmail"
+              className="w-full p-2 mt-1 border border-gray-300 rounded-md"
+              required
+            />
+          </div>
 
-        <div className="mb-4">
-          <label htmlFor="shippingAddress" className="block text-sm font-medium text-gray-700">
-            Shipping Address
-          </label>
-          <textarea
-            id="shippingAddress"
-            name="shippingAddress"
-            className="w-full p-2 mt-1 border border-gray-300 rounded-md"
-            required
-          />
-        </div>
+          <div className="mb-4">
+            <label htmlFor="shippingAddress" className="block text-sm font-medium text-gray-700">
+              Shipping Address
+            </label>
+            <textarea
+              id="shippingAddress"
+              name="shippingAddress"
+              className="w-full p-2 mt-1 border border-gray-300 rounded-md"
+              required
+            />
+          </div>
 
-        <button
-          type="submit"
-          className="w-full bg-blue-500 text-white p-2 rounded-md mt-4"
-        >
-          Place Order
-        </button>
-      </form>
-    </div>
+          
+
+          <button
+            type="submit"
+            className="w-full bg-blue-500 text-white p-2 rounded-md mt-4"
+            disabled={status === "pending"} // Disable button while processing
+          >
+            {status === "pending" ? "Processing..." : "Place Order"}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
+
