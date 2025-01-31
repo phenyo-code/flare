@@ -56,9 +56,11 @@ export default async function CartPage() {
                 {cart && cart.items.length > 0 && (
                     <div className="mt-6 flex justify-between items-center">
                         <p className="text-xl font-semibold">Total: R{cart.items.reduce((total, item) => total + item.product.price * item.quantity, 0)}</p>
+                        <Link href="/check-out">
                         <button className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-6 rounded">
                             Proceed to Checkout
                         </button>
+                        </Link>
                     </div>
                 )}
             </div>

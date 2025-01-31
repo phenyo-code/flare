@@ -28,7 +28,7 @@ const Header = () => {
   }, []); // Empty dependency array to fetch only once on component mount
 
   return (
-    <div className="header w-full bg-white flex flex-col box-border">
+    <div className="header w-full  bg-white flex flex-col box-border">
       {/* Top Row */}
       <div className="header-top-row flex justify-between items-center py-2 px-4">
         {/* Logo */}
