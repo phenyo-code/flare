@@ -41,7 +41,7 @@ const AdminHeader = () => {
             <Link href="/add-product" className="text-gray-800">Add Product</Link>
           </li>
           <li className="py-4 px-6 border-b border-gray-200">
-            <Link href="/admin/orders" className="text-gray-800">Orders</Link>
+            <Link href="/orders-admin" className="text-gray-800">Orders</Link>
           </li>
           <li className="py-4 px-6 border-b border-gray-200">
             <Link href="/admin/settings" className="text-gray-800">Settings</Link>

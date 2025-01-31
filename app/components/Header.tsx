@@ -97,6 +97,11 @@ const Header = () => {
             </Link>
           </li>
           <li className="py-4 px-6 border-b border-gray-200">
+            <Link href="/orders" className="text-gray-800">
+              Orders
+            </Link>
+          </li>
+          <li className="py-4 px-6 border-b border-gray-200">
             <Link href="/help" className="text-gray-800">
               Help
             </Link>
