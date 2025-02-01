@@ -11,6 +11,7 @@ export const authOptions = {
       clientSecret: process.env.GOOGLE_SECRET!,
       async profile(profile) {
         let userRole = "user";
+        // Define admin role based on a condition (e.g., email)
         if (profile?.email === "phenyokoikoi3@gmail.com") {
           userRole = "admin";
         }
@@ -21,18 +22,27 @@ export const authOptions = {
         });
 
         if (!user) {
-          // If user doesn't exist, create a new one
+          // If user doesn't exist, create a new one with role
           user = await prisma.user.create({
             data: {
               name: profile.name,
               email: profile.email,
               password: "", // Google users won't have passwords
-              role: userRole,
+              role: userRole, // Ensure that the user role is assigned here
             },
           });
+        } else {
+          // Ensure user’s role is updated if it’s changed outside of the login
+          if (user.role !== userRole) {
+            await prisma.user.update({
+              where: { email: profile.email },
+              data: { role: userRole },
+            });
+            user.role = userRole; // Update the role in the session response
+          }
         }
 
-        // Store Google user details in the google_users table
+        // Store or update the user's details in the google_users table
         await prisma.googleUser.upsert({
           where: { googleId: profile.sub },
           update: { name: profile.name, email: profile.email, image: profile.picture },
@@ -46,7 +56,7 @@ export const authOptions = {
         });
 
         return {
-          id: user.id, // Use the user ID from the database
+          id: user.id,
           name: profile.name,
           email: profile.email,
           role: user.role,
@@ -81,13 +91,13 @@ export const authOptions = {
         token.role = user.role;
         token.image = user.image;
       }
-      return token;
+      return token; // Ensure role is included in the JWT token
     },
 
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id;
-        session.user.role = token.role;
+        session.user.role = token.role; // Ensure role is included in the session
         session.user.image = token.image;
       }
       return session;

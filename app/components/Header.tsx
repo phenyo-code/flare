@@ -139,12 +139,12 @@ const Header = () => {
           {/* Conditionally show the logout or login button */}
           {session ? (
             <li className="py-4 px-6 border-b border-gray-200">
-              <button
-                onClick={handleSignOut}
+              <a href="/signout"
+                
                 className="w-full text-gray-800 p-2"
               >
                 Logout
-              </button>
+              </a>
             </li>
           ) : (
             <li className="py-4 px-6 border-b border-gray-200">
