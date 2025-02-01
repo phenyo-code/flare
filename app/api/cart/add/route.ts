@@ -9,18 +9,19 @@ export async function POST(req: Request) {
         const body = await req.json();
         console.log("Parsed request body:", body);
 
-        const { cartId, productId } = body;
+        const { cartId, productId, selectedSizeId } = body; // Expecting selectedSizeId
 
-        if (!cartId || !productId) {
-            console.error("Missing cartId or productId", { cartId, productId });
-            return NextResponse.json({ message: "Product ID and Cart ID are required." }, { status: 400 });
+        if (!cartId || !productId || !selectedSizeId) {
+            console.error("Missing cartId, productId, or selectedSizeId", { cartId, productId, selectedSizeId });
+            return NextResponse.json({ message: "Product ID, Cart ID, and Size ID are required." }, { status: 400 });
         }
 
-        // Add item to cart
+        // Add item to cart with sizeId
         const cartItem = await prisma.cartItem.create({
             data: {
                 cartId,
                 productId,
+                sizeId: selectedSizeId, // Include the selected size
                 quantity: 1,
             },
         });
@@ -33,26 +34,3 @@ export async function POST(req: Request) {
         return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
     }
 }
-
-
-export async function GET() {
-    try {
-      // Fetch the first cart without any userId filter
-      const cart = await prisma.cart.findFirst({
-        include: {
-          items: true, // Include related cart items
-        },
-      });
-  
-      // If cart is not found, return an empty cart with no items
-      if (!cart || !cart.items) {
-        return new Response(JSON.stringify({ items: [] }), { status: 200 });
-      }
-  
-      // Return the cart with the items
-      return new Response(JSON.stringify(cart), { status: 200 });
-    } catch (error) {
-      console.error('Error fetching cart:', error);
-      return new Response(JSON.stringify({ error: 'Failed to fetch cart data' }), { status: 500 });
-    }
-  }

@@ -84,10 +84,10 @@ export default async function OrdersPage() {
                         className="flex flex-col sm:flex-row items-center sm:items-start justify-between mb-4 p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300"
                       >
                         {/* Product Image and Link */}
-                        {item.product.image ? (
+                        {item.product.images ? (
                           <Link href={`/product/${item.product.id}`} className="mr-4">
                             <img
-                              src={item.product.image}
+                              src={item.product.images[0]}
                               alt={item.product.name}
                               className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-md"
                             />

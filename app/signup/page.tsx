@@ -56,8 +56,10 @@ export default function SignUpPage({ searchParams }: { searchParams: { error?: s
   const success = searchParams?.success === "true";
 
   return (
-    <div className="max-w-lg mx-auto mt-10 p-6 bg-white shadow-md rounded-lg">
-      <h2 className="text-2xl font-bold mb-4">Sign Up</h2>
+    <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        
+      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded shadow-md">
+      <p className="font-semibold text-center mb-2 text-gray-800">Create Account</p>
 
       {/* Show success message if redirected with ?success=true */}
       {success && (
@@ -104,6 +106,8 @@ export default function SignUpPage({ searchParams }: { searchParams: { error?: s
         <p className="text-sm">Already have an account?</p>
         <a href="/login" className="text-blue-500">Login here</a>
       </div>
+
+    </div>
     </div>
   );
 }

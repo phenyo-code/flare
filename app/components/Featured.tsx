@@ -6,13 +6,18 @@ interface HeroSectionProps {
   product: Product | null;
 }
 
-export default function HeroSection({ product }: HeroSectionProps) {
+export default function Featured({ product }: HeroSectionProps) {
   if (!product) {
     return <p>No product available in this category.</p>;
   }
 
   // Fetch the first image from the images array
   const firstImage = product.images[0];
+
+  // Calculate the discount percentage
+  const discount = product.Originalprice
+    ? ((product.Originalprice - product.price) / product.Originalprice) * 100
+    : 0;
 
   return (
     <div className="hero-section relative w-full h-[400px] mb-10 sm:h-[500px] md:h-[600px] flex items-center justify-center">
@@ -27,8 +32,15 @@ export default function HeroSection({ product }: HeroSectionProps) {
       />
       {/* Overlay Content */}
       <div className="absolute top-1/2 transform -translate-y-1/2 text-center text-white w-full">
-        <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4">New Arrival</h2>
-        <p className="mb-6 text-lg sm:text-xl md:text-2xl">Explore the latest trends in fashion</p>
+        <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4">Today Only</h2>
+
+        {/* Display the discount percentage */}
+        {product.Originalprice && discount > 0 && (
+          <p className="mb-6 text-lg sm:text-2xl md:text-2xl font-semibold">
+            {discount.toFixed(0)}% OFF FLARE WIDE.
+          </p>
+        )}
+
         <Link href={`/product/${product.id}`} className="bg-red-600 text-white px-6 py-3 text-lg sm:text-xl">
           Shop Now
         </Link>

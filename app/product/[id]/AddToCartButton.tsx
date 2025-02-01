@@ -6,17 +6,23 @@ import { createCartItemAction } from "../../actions/cart";
 interface AddToCartButtonProps {
     productId: string;
     cartId: string;
+    selectedSizeId?: string;  // Make it optional but required for adding
 }
 
-export default function AddToCartButton({ productId, cartId }: AddToCartButtonProps) {
+export default function AddToCartButton({ productId, cartId, selectedSizeId }: AddToCartButtonProps) {
     const [isPending, startTransition] = useTransition();
     const [isAdded, setIsAdded] = useState(false);
 
     const handleAddToCart = () => {
+        if (!selectedSizeId) {
+            console.error("No size selected");
+            return;
+        }
+
         startTransition(async () => {
             try {
-                await createCartItemAction(cartId, productId);
-                setIsAdded(true); // Update button state to show "Added to Cart"
+                await createCartItemAction(cartId, productId, selectedSizeId);
+                setIsAdded(true);
             } catch (error) {
                 console.error("Error adding to cart:", error);
             }
@@ -29,7 +35,7 @@ export default function AddToCartButton({ productId, cartId }: AddToCartButtonPr
                 isAdded ? "bg-green-500 cursor-not-allowed" : "bg-red-500 hover:bg-red-700"
             } text-white`}
             onClick={handleAddToCart}
-            disabled={isPending || isAdded}
+            disabled={isPending || isAdded || !selectedSizeId}  // Disable if no size selected
         >
             {isAdded ? "Added to Cart" : isPending ? "Adding..." : "Add to Cart"}
         </button>

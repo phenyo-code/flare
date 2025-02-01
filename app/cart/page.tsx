@@ -65,7 +65,7 @@ export default async function CartPage() {
                   {/* Product Image */}
                   <div className="flex items-center space-x-4">
                     <Image
-                      src={item.product.image}
+                      src={item.product.images[0]}
                       alt={item.product.name}
                       width={80}
                       height={80}

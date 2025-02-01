@@ -7,26 +7,47 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Product model with multiple images and relation to Size model
 model Product {
-  id        String     @id @default(auto()) @map("_id") @db.ObjectId
-  name      String
-  price     Int
-  category  String
-  filter    String
-  image     String
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  CartItem  CartItem[]
-  OrderItem OrderItem[]
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  price         Int // The price of the product
+  Originalprice Int? // Original Price of the product
+  category      String
+  filter        String
+  images        String[] // Multiple images for the product, stored as an array of strings
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  CartItem      CartItem[]
+  OrderItem     OrderItem[]
+
+  // Relation to Size model
+  sizes         Size[] // One product can have multiple sizes
 
   @@map("products")
 }
+
+// Size model to handle different sizes, sold count, and quantity
+model Size {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  productId String  @db.ObjectId // Foreign key to Product
+  size      String  // Size of the product, e.g., 'Small', 'Medium', 'Large'
+  sold      Int     // Number of items sold for this size
+  quantity  Int     // Total quantity available in stock for this size
+  product   Product @relation(fields: [productId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  CartItem CartItem[]
+}
+
 
 model Cart {
   id        String     @id @default(auto()) @map("_id") @db.ObjectId
   userId    String     @db.ObjectId // Link to the User
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items     CartItem[]
+  items     CartItem[] // Cart can have multiple items
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 
@@ -41,20 +62,25 @@ model CartItem {
   cartId    String  @db.ObjectId
   cart      Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
 
+  // Reference to the selected size
+  sizeId    String  @db.ObjectId
+  size      Size    @relation(fields: [sizeId], references: [id], onDelete: Cascade)
+
   @@map("cartitems")
 }
 
+
 model Order {
-  id              String     @id @default(auto()) @map("_id") @db.ObjectId
-  userId          String     @db.ObjectId // Link to the User
-  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String      @db.ObjectId // Link to the User
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   shippingName    String
   shippingEmail   String
   shippingAddress String
-  status          String     // e.g., 'pending', 'paid', 'shipped'
+  status          String // e.g., 'pending', 'paid', 'shipped'
   totalPrice      Int
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
   items           OrderItem[]
 
   @@map("orders")
@@ -73,17 +99,17 @@ model OrderItem {
 }
 
 model User {
-  id        String     @id @default(auto()) @map("_id") @db.ObjectId
-  name      String?
-  email     String     @unique
-  password  String?
-  role      String     @default("user")
-  image     String?    // Store Google profile image URL
-  createdAt DateTime   @default(now())
+  id         String      @id @default(auto()) @map("_id") @db.ObjectId
+  name       String?
+  email      String      @unique
+  password   String?
+  role       String      @default("user")
+  image      String? // Store Google profile image URL
+  createdAt  DateTime    @default(now())
   googleUser GoogleUser? // Link to the GoogleUser model, if applicable
-  Session   Session[]  
-  carts     Cart[]     // User can have multiple carts
-  orders    Order[]    // User can have multiple orders
+  Session    Session[]
+  carts      Cart[] // User can have multiple carts
+  orders     Order[] // User can have multiple orders
 
   @@map("users")
 }
@@ -93,22 +119,22 @@ model GoogleUser {
   googleId  String   @unique // Google login unique ID
   name      String
   email     String   @unique
-  image     String?  // Google profile image (optional)
-  role      String   @default("user")  // Add role here
+  image     String? // Google profile image (optional)
+  role      String   @default("user") // Add role here
   createdAt DateTime @default(now())
-  userId    String   @unique @db.ObjectId  // Unique ID linking to the User model
-  user      User     @relation(fields: [userId], references: [id])  // Linking to the User model
+  userId    String   @unique @db.ObjectId // Unique ID linking to the User model
+  user      User     @relation(fields: [userId], references: [id]) // Linking to the User model
 
   @@map("google_users")
 }
 
 model Session {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String   @db.ObjectId
-  expires     DateTime
-  user        User     @relation(fields: [userId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  expires   DateTime
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("sessions")
 }

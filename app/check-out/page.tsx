@@ -2,10 +2,20 @@
 import { redirect } from "next/navigation";
 import { prisma } from "../lib/db/prisma";
 import SearchHeader from "../components/SearchHeader";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../api/auth/[...nextauth]/route";
 
 // Server action function to place an order
 export async function PlaceOrder(formData: FormData) {
   "use server";
+
+  // Fetch user session to get logged-in user's details
+  const session = await getServerSession(authOptions);
+
+  // If user is not authenticated, throw an error
+  if (!session || !session.user) {
+    throw new Error("You must be logged in to place an order.");
+  }
 
   const shippingName = formData.get("shippingName")?.toString();
   const shippingEmail = formData.get("shippingEmail")?.toString();
@@ -16,8 +26,11 @@ export async function PlaceOrder(formData: FormData) {
     throw new Error("Please fill in all fields.");
   }
 
-  // Fetch cart items (no filtering for user ID for now)
+  // Fetch cart items for the logged-in user
   const cart = await prisma.cart.findFirst({
+    where: {
+      userId: session.user.id, // Ensure to fetch cart for logged-in user
+    },
     include: {
       items: true,
     },
@@ -27,10 +40,10 @@ export async function PlaceOrder(formData: FormData) {
     throw new Error("Your cart is empty. Please add items before placing an order.");
   }
 
-  // Create a new order
+  // Create a new order with the userId from the session
   const order = await prisma.order.create({
     data: {
-      userId: "someUserId", // Replace with actual user ID
+      userId: session.user.id, // Use the authenticated user's ID
       shippingName,
       shippingEmail,
       shippingAddress,
@@ -74,7 +87,7 @@ export async function PlaceOrder(formData: FormData) {
     data: { totalPrice },
   });
 
-  // Clear the cart
+  // Clear the cart for the user
   await prisma.cart.update({
     where: { id: cart.id },
     data: { items: { deleteMany: {} } },
@@ -140,8 +153,6 @@ export default function CheckoutPage({ searchParams }: { searchParams: { success
             />
           </div>
 
-          
-
           <button
             type="submit"
             className="w-full bg-blue-500 text-white p-2 rounded-md mt-4"
@@ -154,4 +165,3 @@ export default function CheckoutPage({ searchParams }: { searchParams: { success
     </div>
   );
 }
-

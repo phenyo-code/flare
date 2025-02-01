@@ -16,7 +16,18 @@ const Header = () => {
   useEffect(() => {
     const fetchCartItemCount = async () => {
       try {
-        const response = await fetch("/api/cart/items/count"); // Adjust the API endpoint as needed
+        if (!session?.user) {
+          setCartItems(0);
+          return; // If no user is logged in, return 0 cart items
+        }
+
+        const response = await fetch("/api/cart/items/count", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
         if (response.ok) {
           const data = await response.json();
           setCartItems(data.count); // Assuming the API returns { count: <number> }
@@ -29,7 +40,7 @@ const Header = () => {
     };
 
     fetchCartItemCount();
-  }, []); // Empty dependency array to fetch only once on component mount
+  }, [session]); // Re-run when session data changes
 
   // Handle sign out
   const handleSignOut = () => {
@@ -60,13 +71,12 @@ const Header = () => {
           <div className="cart-icon relative">
             <Link href="/cart">
               <FiShoppingCart className="text-gray-600 text-2xl cursor-pointer" />
-            
-            {/* Show the cart item count as a very small bubble */}
-            {cartItems > 0 && (
-              <span className="absolute top-[-6] right-[-3] w-3.5 h-3.5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                {cartItems}
-              </span>
-            )}
+              {/* Show the cart item count as a very small bubble */}
+              {cartItems > 0 && (
+                <span className="absolute top-[-6] right-[-3] w-3.5 h-3.5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                  {cartItems}
+                </span>
+              )}
             </Link>
           </div>
           {/* Menu Icon */}
@@ -79,9 +89,7 @@ const Header = () => {
 
       {/* Side Menu (From Right) */}
       <div
-        className={`fixed top-0 right-0 w-64 h-full bg-white text-black z-50 transition-transform duration-300 ease-in-out shadow-lg ${
-          isMenuOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed top-0 right-0 w-64 h-full bg-white text-black z-50 transition-transform duration-300 ease-in-out shadow-lg ${isMenuOpen ? "translate-x-0" : "translate-x-full"}`}
       >
         {/* Close Button */}
         <div className="flex justify-end p-4">
@@ -119,24 +127,24 @@ const Header = () => {
             </Link>
           </li>
 
-          {/* Conditionally show the Admin link if the user is an admin */}
-          
+         
+        
             <li className="py-4 px-6 border-b border-gray-200">
               <Link href="/admin" className="text-gray-800">
                 Admin Dashboard
               </Link>
             </li>
-         
+        
 
           {/* Conditionally show the logout or login button */}
           {session ? (
             <li className="py-4 px-6 border-b border-gray-200">
-              <a
-        href="/signout"
-        className="mt-4 w-full  text-gray-800 p-2 "
-      >
-        Logout
-      </a>
+              <button
+                onClick={handleSignOut}
+                className="w-full text-gray-800 p-2"
+              >
+                Logout
+              </button>
             </li>
           ) : (
             <li className="py-4 px-6 border-b border-gray-200">
@@ -152,6 +160,7 @@ const Header = () => {
 };
 
 export default Header;
+
 
 
 

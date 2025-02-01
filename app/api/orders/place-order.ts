@@ -1,8 +1,18 @@
 import { prisma } from "../../lib/db/prisma";
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../../api/auth/[...nextauth]/route";
 
 export async function POST(request: Request) {
   try {
+    // Fetch user session
+    const session = await getServerSession(authOptions);
+
+    // Check if user is authenticated
+    if (!session || !session.user) {
+      return NextResponse.json({ error: "You must be logged in to place an order." }, { status: 401 });
+    }
+
     const formData = new URLSearchParams(await request.text());
     const shippingName = formData.get("shippingName");
     const shippingEmail = formData.get("shippingEmail");
@@ -14,9 +24,8 @@ export async function POST(request: Request) {
 
     // Fetch the cart items
     const cart = await prisma.cart.findFirst({
-      include: {
-        items: true,
-      },
+      where: { userId: session.user.id }, // Fetch user's cart
+      include: { items: true },
     });
 
     if (!cart || cart.items.length === 0) {
@@ -26,7 +35,7 @@ export async function POST(request: Request) {
     // Create the order in the database
     const order = await prisma.order.create({
       data: {
-        userId: "someUserId", // Replace with actual user ID
+        userId: session.user.id, // Use the authenticated user ID
         shippingName,
         shippingEmail,
         shippingAddress,

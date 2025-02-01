@@ -12,7 +12,7 @@ export default function SearchHeader() {
   }
 
   return (
-    <div className=" left-0 w-full z-50 flex items-center gap-2 bg-white  p-2">
+    <div className=" left-0 w-full z-50 flex items-center gap-2 bg-white overflow-hidden  p-2">
       {/* Back Arrow */}
       <IoIosArrowBack
         onClick={() => router.back()}
