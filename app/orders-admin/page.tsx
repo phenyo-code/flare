@@ -43,6 +43,7 @@ export default async function ManageOrdersPage({
       items: {
         include: {
           product: true, // Include product details for each item in the order
+          size: true,    // Include size details for each item
         },
       },
     },
@@ -76,10 +77,10 @@ export default async function ManageOrdersPage({
                   {order.items.map((item) => (
                     <li key={item.productId} className="flex justify-between items-center mb-4">
                       {/* Product Image and Link */}
-                      {item.product.image ? (
+                      {item.product.images ? (
                         <Link href={`/product/${item.product.id}`} className="mr-4">
                           <img
-                            src={item.product.image}
+                            src={item.product.images[0]}
                             alt={item.product.name}
                             className="w-16 h-16 object-cover rounded-md"
                           />
@@ -93,6 +94,13 @@ export default async function ManageOrdersPage({
                         <div className="text-sm text-gray-600">
                           {item.quantity} x R{item.price}
                         </div>
+
+                        {/* Show the size if available */}
+                        {item.size && (
+                          <div className="text-sm text-gray-700 mt-1">
+                            Size: {item.size.size}
+                          </div>
+                        )}
                       </div>
                     </li>
                   ))}
@@ -115,7 +123,9 @@ export default async function ManageOrdersPage({
                     className="w-full p-2 mt-1 border border-gray-300 rounded-md"
                     defaultValue={order.status}
                   >
-                    <option value="pending">Pending</option>
+                    <option value="order submitted">Order Submitted</option>
+                    <option value="preparing">Preparing</option>
+                    <option value="packaged">Packaged</option>
                     <option value="shipped">Shipped</option>
                     <option value="delivered">Delivered</option>
                     <option value="canceled">Canceled</option>

@@ -29,18 +29,20 @@ model Product {
 
 // Size model to handle different sizes, sold count, and quantity
 model Size {
-  id        String  @id @default(auto()) @map("_id") @db.ObjectId
-  productId String  @db.ObjectId // Foreign key to Product
-  size      String  // Size of the product, e.g., 'Small', 'Medium', 'Large'
-  sold      Int     // Number of items sold for this size
-  quantity  Int     // Total quantity available in stock for this size
-  product   Product @relation(fields: [productId], references: [id])
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  productId String   @db.ObjectId // Foreign key to Product
+  size      String   // Size of the product, e.g., 'Small', 'Medium', 'Large'
+  sold      Int      // Number of items sold for this size
+  quantity  Int      // Total quantity available in stock for this size
+  product   Product @relation(fields: [productId], references: [id]) // Relation to Product
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  CartItem CartItem[]
+  CartItem CartItem[]  // Relationship with CartItem
+  OrderItem OrderItem[] // Relationship with OrderItem
 }
+
 
 
 model Cart {
@@ -77,7 +79,7 @@ model Order {
   shippingName    String
   shippingEmail   String
   shippingAddress String
-  status          String // e.g., 'pending', 'paid', 'shipped'
+  status          String      // e.g., 'pending', 'paid', 'shipped'
   totalPrice      Int
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
@@ -92,11 +94,14 @@ model OrderItem {
   productId String  @db.ObjectId
   quantity  Int
   price     Int
+  sizeId    String  @db.ObjectId // Add sizeId field for the selected size
   product   Product @relation(fields: [productId], references: [id])
   order     Order   @relation(fields: [orderId], references: [id])
+  size      Size    @relation(fields: [sizeId], references: [id]) // Define the relationship to Size model
 
   @@map("orderitems")
 }
+
 
 model User {
   id         String      @id @default(auto()) @map("_id") @db.ObjectId

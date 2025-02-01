@@ -15,15 +15,17 @@ export default function Sizes({ productId, sizes, cartId }: SizesProps) {
     return (
         <div className="mt-4">
             <h3 className="text-lg font-semibold">Available Sizes:</h3>
-            <div className="flex gap-2 mt-2">
+            <div className="flex gap-2 mt-2 mb-4">
                 {sizes.length > 0 ? (
                     sizes.map((size) => (
                         <button
                             key={size.id}
                             onClick={() => setSelectedSizeId(size.id)}
-                            className={`border px-4 py-2 ${
-                                selectedSizeId === size.id ? "bg-gray-300" : "hover:bg-gray-200"
-                            }`}
+                            className={`border px-4 py-2 rounded-lg 
+                                ${selectedSizeId === size.id 
+                                    ? "bg-red-500 text-white" // Apply red background when selected
+                                    : "hover:bg-red-400 hover:text-white" // Apply hover effect for unselected
+                                }`}
                         >
                             {size.size}
                         </button>

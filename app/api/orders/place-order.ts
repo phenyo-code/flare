@@ -59,6 +59,7 @@ export async function POST(request: Request) {
           productId: item.productId,
           quantity: item.quantity,
           price: product.price || 0,
+          sizeId: item.sizeId, // Ensure sizeId is included
         };
       })
     );

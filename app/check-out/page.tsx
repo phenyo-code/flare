@@ -32,7 +32,11 @@ export async function PlaceOrder(formData: FormData) {
       userId: session.user.id, // Ensure to fetch cart for logged-in user
     },
     include: {
-      items: true,
+      items: {
+        include: {
+          size: true, // Include the size of the product for each cart item
+        },
+      },
     },
   });
 
@@ -64,11 +68,13 @@ export async function PlaceOrder(formData: FormData) {
         throw new Error(`Product not found for item: ${item.productId}`);
       }
 
+      // Return order items with the sizeId linked to each item
       return {
         orderId: order.id,
         productId: item.productId,
         quantity: item.quantity,
         price: product.price || 0, // Default to 0 if price is not found
+        sizeId: item.sizeId, // Include the sizeId for each item
       };
     })
   );

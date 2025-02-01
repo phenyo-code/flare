@@ -36,7 +36,7 @@ export default async function ProductDetails({ params }: { params: { id: string 
     }
 
     return (
-        <div>
+        <div className="overflow-hidden">
             <SearchHeader />
 
             <div className="container mx-auto">

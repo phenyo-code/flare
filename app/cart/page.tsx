@@ -10,13 +10,16 @@ export default async function CartPage() {
   // Get session to identify the user
   const session = await getServerSession(authOptions);
 
-  // Fetch user's cart
+  // Fetch user's cart, including size details for each cart item
   const cart = session
     ? await prisma.cart.findFirst({
         where: { userId: session.user.id },
         include: {
           items: {
-            include: { product: true },
+            include: {
+              product: true,
+              size: true, // Include the size relation to get the selected size details
+            },
           },
         },
       })
@@ -52,7 +55,7 @@ export default async function CartPage() {
             <div className="text-center text-gray-500 mt-10">
               <p>Your cart is empty.</p>
               <Link href="/">
-                <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-6  mt-4">
+                <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-6 mt-4">
                   Shop Now
                 </button>
               </Link>
@@ -75,6 +78,11 @@ export default async function CartPage() {
                       <p className="text-lg font-medium">{item.product.name}</p>
                       <p className="text-red-500">R{item.product.price}</p>
                       <p className="text-gray-500">Quantity: {item.quantity}</p>
+
+                      {/* Show the selected size */}
+                      {item.size && (
+                        <p className="text-gray-700 mt-2">Size: {item.size.size}</p>
+                      )}
                     </div>
                   </div>
 

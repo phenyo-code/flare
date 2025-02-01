@@ -16,7 +16,11 @@ export async function PlaceOrder(formData: FormData) {
   // Fetch the cart items (without userId filtering for now)
   const cart = await prisma.cart.findFirst({
     include: {
-      items: true,
+      items: {
+        include: {
+          size: true, // Include the size of the product for each cart item
+        },
+      },
     },
   });
 
@@ -46,11 +50,14 @@ export async function PlaceOrder(formData: FormData) {
       if (!product) {
         throw new Error(`Product not found for item: ${item.productId}`);
       }
+
+      // Use the sizeId from the cart item to associate the size with the order item
       return {
         orderId: order.id,
         productId: item.productId,
         quantity: item.quantity,
         price: product.price || 0, // Default to 0 if price is not found
+        sizeId: item.sizeId, // Add the sizeId to the order item
       };
     })
   );
@@ -78,3 +85,4 @@ export async function PlaceOrder(formData: FormData) {
   // Redirect to a success page or confirmation
   redirect("/order-success");
 }
+

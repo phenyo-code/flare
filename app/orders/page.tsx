@@ -19,6 +19,7 @@ export default async function OrdersPage() {
           items: {
             include: {
               product: true, // Include product details
+              size: true,    // Include size details for each item
             },
           },
         },
@@ -55,18 +56,25 @@ export default async function OrdersPage() {
                 <div className="flex justify-between items-center mb-4">
                   <span
                     className={`px-3 py-1 rounded-md text-white font-semibold ${
-                      order.status === "pending"
+                      order.status === "order submitted"
                         ? "bg-yellow-500"
+                        : order.status === "preparing"
+                        ? "bg-blue-500"
+                        : order.status === "packaged"
+                        ? "bg-purple-500"
+                        : order.status === "shipped"
+                        ? "bg-green-500"
+                        : order.status === "delivered"
+                        ? "bg-teal-500"
                         : order.status === "canceled"
                         ? "bg-red-500"
-                        : order.status === "shipped"
-                        ? "bg-blue-500"
-                        : "bg-green-500"
+                        : "bg-gray-500" // For any other status
                     }`}
                   >
-                    {order.status}
+                    {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                   </span>
                 </div>
+
 
                 {/* Order Summary */}
                 <div className="flex justify-between mb-4">
@@ -96,7 +104,7 @@ export default async function OrdersPage() {
                           <div className="w-16 h-16 sm:w-20 sm:h-20 mr-4 bg-gray-200 rounded-md"></div>
                         )}
 
-                        {/* Product Name and Price */}
+                        {/* Product Name, Price, and Size */}
                         <div className="flex-1 sm:flex-row flex-col">
                           <span className="text-gray-600 font-semibold text-sm sm:text-base">
                             {item.product.name}
@@ -104,6 +112,13 @@ export default async function OrdersPage() {
                           <div className="text-gray-600 text-xs sm:text-sm">
                             {item.quantity} x R{item.price}
                           </div>
+
+                          {/* Show the size if available */}
+                          {item.size && (
+                            <div className="text-gray-700 mt-1 text-sm">
+                              Size: {item.size.size}
+                            </div>
+                          )}
                         </div>
                       </li>
                     ))}
