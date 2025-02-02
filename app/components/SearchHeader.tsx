@@ -23,12 +23,12 @@ export default function SearchHeader() {
       <div className="flex flex-grow items-center border border-gray-300 rounded-lg overflow-hidden">
         <input
           type="text"
-          placeholder="Search products..."
+          placeholder="Searh..."
           className="w-full p-2 text-gray-800 outline-none"
           onClick={handleSearchClick} // Navigates to /search on click
           readOnly // Prevents typing (since we navigate away)
         />
-        <button className="bg-black rounded-lg   h-full text-white p-2">
+        <button className="bg-black h-10 text-white p-2">
           <FiSearch className="text-xl" />
         </button>
       </div>

@@ -1,6 +1,5 @@
 import ProductCard from "./ProductCard";
 import { Product } from "@prisma/client";
-import { FiSearch } from "react-icons/fi"; // Search Icon
 import { IoMdSad } from "react-icons/io"; // Sad face icon
 
 interface ProductListProps {

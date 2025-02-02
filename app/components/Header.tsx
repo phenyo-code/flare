@@ -73,7 +73,7 @@ const Header = () => {
               <FiShoppingCart className="text-gray-600 text-2xl cursor-pointer" />
               {/* Show the cart item count as a very small bubble */}
               {cartItems > 0 && (
-                <span className="absolute top-[-6] right-[-3] w-3.5 h-3.5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                <span className="absolute top-[-8] right-[-7] w-3.5 h-3.5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
                   {cartItems}
                 </span>
               )}
@@ -92,66 +92,80 @@ const Header = () => {
         className={`fixed top-0 right-0 w-64 h-full bg-white text-black z-50 transition-transform duration-300 ease-in-out shadow-lg ${isMenuOpen ? "translate-x-0" : "translate-x-full"}`}
       >
         {/* Close Button */}
-        <div className="flex justify-end p-4">
+        <div className="flex justify-end p-6">
           <FiX
-            className="text-gray-600 text-2xl cursor-pointer"
+            className="text-red-600 text-2xl cursor-pointer"
             onClick={() => setIsMenuOpen(false)}
           />
         </div>
 
         {/* Menu Links */}
         <ul className="flex flex-col m-0 p-0">
+        <Link href="/profile" className="text-gray-800">
           <li className="py-4 px-6 border-b border-gray-200">
-            <Link href="/profile" className="text-gray-800">
+            
               Profile
-            </Link>
+            
           </li>
+          </Link>
+          <Link href="/settings" className="text-gray-800">
           <li className="py-4 px-6 border-b border-gray-200">
-            <Link href="/settings" className="text-gray-800">
+            
               Settings
-            </Link>
+            
           </li>
+          </Link>
+          <Link href="/wishlist" className="text-gray-800">
           <li className="py-4 px-6 border-b border-gray-200">
-            <Link href="/wishlist" className="text-gray-800">
+            
               Wishlist
-            </Link>
+            
           </li>
+          </Link>
+          <Link href="/orders" className="text-gray-800">
           <li className="py-4 px-6 border-b border-gray-200">
-            <Link href="/orders" className="text-gray-800">
+            
               Orders
-            </Link>
+            
           </li>
+          </Link>
+          <Link href="/help" className="text-gray-800">
           <li className="py-4 px-6 border-b border-gray-200">
-            <Link href="/help" className="text-gray-800">
+            
               Help
-            </Link>
+            
           </li>
+          </Link>
 
          
-        
+          <Link href="/admin" className="text-gray-800">
             <li className="py-4 px-6 border-b border-gray-200">
-              <Link href="/admin" className="text-gray-800">
+              
                 Admin Dashboard
-              </Link>
+              
             </li>
+            </Link>
         
 
           {/* Conditionally show the logout or login button */}
           {session ? (
+            <a href="/signout" 
+            className="w-full text-red-800  font-bold p-2"
+          >
             <li className="py-4 px-6 border-b border-gray-200">
-              <a href="/signout"
-                
-                className="w-full text-gray-800 p-2"
-              >
+              
                 Logout
-              </a>
+              
             </li>
+            </a>
           ) : (
+            <Link href="/login" className="text-red-800  font-bold">
             <li className="py-4 px-6 border-b border-gray-200">
-              <Link href="/login" className="text-gray-800">
+              
                 Login
-              </Link>
+              
             </li>
+            </Link>
           )}
         </ul>
       </div>

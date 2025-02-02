@@ -21,7 +21,9 @@ export default function SearchPage() {
   useEffect(() => {
     // Automatically focus the search input when the page is loaded
     if (inputRef.current) {
-      inputRef.current.focus();
+      setTimeout(() => {
+        inputRef.current?.focus(); // Focus after a slight delay to ensure input is rendered
+      }, 100);
     }
 
     if (query && !initialLoad) {

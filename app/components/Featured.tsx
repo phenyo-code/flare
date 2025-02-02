@@ -41,7 +41,7 @@ export default function Featured({ product }: HeroSectionProps) {
           </p>
         )}
 
-        <Link href={`/product/${product.id}`} className="bg-red-600 text-white px-6 py-3 text-lg sm:text-xl">
+        <Link href={`/product/${product.id}`} className="bg-red-600 text-white hover:bg-white hover:text-red-600  px-6 py-3 text-lg sm:text-xl">
           Shop Now
         </Link>
       </div>
