@@ -1,6 +1,6 @@
 import { prisma } from "../../../../lib/db/prisma";
 import { getServerSession } from "next-auth/next"; // Correct import
-import { authOptions } from "../../../auth/[...nextauth]/route";
+import { authOptions } from "../../../auth/[...nextauth]/options";
 
 export async function GET(req: Request) {
   try {

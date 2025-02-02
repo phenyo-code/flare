@@ -2,7 +2,7 @@ import { prisma } from "../lib/db/prisma";
 import Link from "next/link";
 import SearchHeader from "../components/SearchHeader";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../api/auth/[...nextauth]/route";
+import { authOptions } from "../api/auth/[...nextauth]/options";
 
 export default async function OrdersPage() {
   // Get session to identify the user

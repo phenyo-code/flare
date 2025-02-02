@@ -4,7 +4,7 @@ import RemoveFromCartButton from "../product/[id]/RemoveFromCartButton";
 import SearchHeader from "../components/SearchHeader";
 import Link from "next/link";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../api/auth/[...nextauth]/route";
+import { authOptions } from "../api/auth/[...nextauth]/options";
 
 export default async function CartPage() {
   // Get session to identify the user

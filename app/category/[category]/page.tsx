@@ -1,18 +1,27 @@
 import { prisma } from "../../lib/db/prisma";
-import { Product } from "@prisma/client";
 import CategoryHeader from "../../components/CategoryHeader";
 import HeroSection from "../../components/HeroSection";
 import Header from "../../components/Header";
 import ProductList from "../../components/ProductList";
 
-interface CategoryPageProps {
-  params: {
-    category: string;
+// Type for the category params
+interface CategoryPageParams {
+  category: string;
+}
+
+// Updated to handle async params resolution properly
+export async function generateMetadata({ params }: { params: Promise<CategoryPageParams> }) {
+  const { category } = await params; // Await the promise for params
+
+  // Your metadata generation logic here, like fetching data for SEO or page title
+  return {
+    title: `Products in ${category}`,
+    description: `Browse products in the ${category} category.`,
   };
 }
 
-export default async function CategoryPage({ params }: CategoryPageProps) {
-  const { category } = params;
+export default async function CategoryPage({ params }: { params: Promise<CategoryPageParams> }) {
+  const { category } = await params; // Await the promise for params
 
   // Fetch all products in the selected category
   const products = await prisma.product.findMany({
@@ -27,14 +36,9 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   return (
     <div>
       <Header />
-      {/* Category Navigation */}
       <CategoryHeader activeCategory={category.toUpperCase()} />
-
-      {/* Hero Section */}
-      <HeroSection product={products[0]} /> {/* Display the latest product in the Hero section */}
-
-      {/* Product List */}
-      <ProductList products={products} /> {/* Pass the list of products */}
+      <HeroSection product={products[0]} />
+      <ProductList products={products} />
     </div>
   );
 }

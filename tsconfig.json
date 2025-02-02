@@ -21,11 +21,17 @@
       {
         "name": "next"
       }
-    ]
+    ],
+    "baseUrl": ".",  // Ensure this is correctly configured to handle relative imports
+    "paths": {
+      "@/*": ["./app/*"]  // Ensure your paths are set if you use aliases in imports
+    }
   },
   "include": [
     "next-env.d.ts",
     ".next/types/**/*.ts",
+    "app/**/*.ts",  // Include app directory types
+    "pages/**/*.ts",  // Include pages if you're using both
     "**/*.ts",
     "**/*.tsx"
   ],

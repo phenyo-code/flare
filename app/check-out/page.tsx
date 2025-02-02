@@ -1,111 +1,30 @@
-// Import necessary libraries 
-import { redirect } from "next/navigation";
-import { prisma } from "../lib/db/prisma";
-import SearchHeader from "../components/SearchHeader";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../api/auth/[...nextauth]/route";
+// app/check-out/page.tsx
+"use client";
 
-// Server action function to place an order
-export async function PlaceOrder(formData: FormData) {
-  "use server";
+import { useSearchParams } from 'next/navigation'; // To access query params
+import { PlaceOrder } from './actions/placeOrder'; // Importing server action
+import SearchHeader from '../components/SearchHeader';
 
-  // Fetch user session to get logged-in user's details
-  const session = await getServerSession(authOptions);
+export default function CheckoutPage() {
+  const searchParams = useSearchParams();
+  const success = searchParams?.get('success');
+  const status = searchParams?.get('status');
 
-  // If user is not authenticated, throw an error
-  if (!session || !session.user) {
-    throw new Error("You must be logged in to place an order.");
-  }
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
 
-  const shippingName = formData.get("shippingName")?.toString();
-  const shippingEmail = formData.get("shippingEmail")?.toString();
-  const shippingAddress = formData.get("shippingAddress")?.toString();
+    const formData = new FormData(event.target as HTMLFormElement);
 
-  // Check if required fields are provided
-  if (!shippingName || !shippingEmail || !shippingAddress) {
-    throw new Error("Please fill in all fields.");
-  }
-
-  // Fetch cart items for the logged-in user
-  const cart = await prisma.cart.findFirst({
-    where: {
-      userId: session.user.id, // Ensure to fetch cart for logged-in user
-    },
-    include: {
-      items: {
-        include: {
-          size: true, // Include the size of the product for each cart item
-        },
-      },
-    },
-  });
-
-  if (!cart || cart.items.length === 0) {
-    throw new Error("Your cart is empty. Please add items before placing an order.");
-  }
-
-  // Create a new order with the userId from the session
-  const order = await prisma.order.create({
-    data: {
-      userId: session.user.id, // Use the authenticated user's ID
-      shippingName,
-      shippingEmail,
-      shippingAddress,
-      status: "pending", // Default status
-      totalPrice: 0, // Placeholder for total price, will update later
-    },
-  });
-
-  // Create order items from the cart items
-  const orderItems = await Promise.all(
-    cart.items.map(async (item) => {
-      const product = await prisma.product.findUnique({
-        where: { id: item.productId },
-        select: { price: true },
-      });
-
-      if (!product) {
-        throw new Error(`Product not found for item: ${item.productId}`);
-      }
-
-      // Return order items with the sizeId linked to each item
-      return {
-        orderId: order.id,
-        productId: item.productId,
-        quantity: item.quantity,
-        price: product.price || 0, // Default to 0 if price is not found
-        sizeId: item.sizeId, // Include the sizeId for each item
-      };
-    })
-  );
-
-  // Insert the order items into the database
-  await prisma.orderItem.createMany({
-    data: orderItems,
-  });
-
-  // Calculate the total price (sum of item prices * quantity)
-  const totalPrice = orderItems.reduce((total, item) => total + item.price * item.quantity, 0);
-
-  // Update the order with the total price
-  await prisma.order.update({
-    where: { id: order.id },
-    data: { totalPrice },
-  });
-
-  // Clear the cart for the user
-  await prisma.cart.update({
-    where: { id: cart.id },
-    data: { items: { deleteMany: {} } },
-  });
-
-  // Redirect to the success page after placing the order
-  redirect("/order-success?status=pending");
-}
-
-export default function CheckoutPage({ searchParams }: { searchParams: { success?: string, status?: string } }) {
-  const success = searchParams?.success === "true";
-  const status = searchParams?.status;
+    // Call the PlaceOrder server action
+    try {
+      await PlaceOrder(formData);
+      // On success, redirect with query params
+      window.location.href = "/order-success?status=completed&success=true";
+    } catch (error) {
+      console.error("Order placement failed", error);
+      // Show an error message to the user
+    }
+  };
 
   return (
     <div>
@@ -120,7 +39,7 @@ export default function CheckoutPage({ searchParams }: { searchParams: { success
           </p>
         )}
 
-        <form action={PlaceOrder}>
+       <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label htmlFor="shippingName" className="block text-sm font-medium text-gray-700">
               Full Name

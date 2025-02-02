@@ -1,39 +1,13 @@
-import { prisma } from "../lib/db/prisma";
-import { redirect } from "next/navigation";
-import AdminHeader from "../components/AdminHeader";
+import { prisma } from "@/lib/db/prisma";
+import { updateOrderStatus } from "./actions/updateOrderStatus"; // Importing the server action
+import AdminHeader from "@/components/AdminHeader";
 import Link from "next/link";
 
 export const metadata = {
   title: "Manage Orders | Admin Panel",
 };
 
-export async function updateOrderStatus(formData: FormData) {
-  "use server";
-
-  const orderId = formData.get("orderId")?.toString();
-  const status = formData.get("status")?.toString();
-
-  if (!orderId || !status) {
-    throw new Error("Order ID and status are required.");
-  }
-
-  // Update the order status in the database
-  await prisma.order.update({
-    where: { id: orderId },
-    data: { status },
-  });
-
-  // Redirect after the update
-  redirect("/orders-admin?success=true");
-}
-
-export default async function ManageOrdersPage({
-  searchParams,
-}: {
-  searchParams: { success?: string };
-}) {
-  const success = searchParams?.success === "true";
-
+export default async function ManageOrdersPage() {
   // Fetch all orders and order them by creation date in descending order
   const orders = await prisma.order.findMany({
     orderBy: {
@@ -54,13 +28,6 @@ export default async function ManageOrdersPage({
       <AdminHeader />
       <div className="max-w-4xl mt-10 mx-auto p-6 bg-white shadow-md rounded-lg">
         <h2 className="text-2xl font-bold mb-4">Manage Orders</h2>
-
-        {/* Success message */}
-        {success && (
-          <p className="mb-4 p-2 text-center text-white bg-green-500 rounded-md">
-            ✅ Order status updated successfully!
-          </p>
-        )}
 
         {orders.length === 0 ? (
           <p>No orders to manage.</p>
@@ -108,6 +75,7 @@ export default async function ManageOrdersPage({
               </div>
 
               <div className="mt-4">
+                {/* Form to update the order status */}
                 <form action={updateOrderStatus}>
                   <input type="hidden" name="orderId" value={order.id} />
 
