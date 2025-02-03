@@ -37,21 +37,23 @@ export function storeUserSearch(searchQuery: string) {
 }
 
 // Function to store product view (Ensuring uniqueness)
-export function storeProductView(productId: string) {
-  let viewedProducts: string[] = [];
+export function storeProductView(filter: string) {
+  let viewedFilters: string[] = [];
 
   try {
     const cookieData = getCookie("user_product_views");
-    viewedProducts = cookieData ? JSON.parse(cookieData) : [];
+    viewedFilters = cookieData ? JSON.parse(cookieData) : [];
   } catch (e) {
     console.error("Error parsing viewed products:", e);
   }
 
-  // Ensure uniqueness
-  const uniqueViews = Array.from(new Set([productId, ...viewedProducts])).slice(0, 20); // Limit to last 20 views
+  // Ensure uniqueness of filters (no duplicates)
+  const uniqueFilters = Array.from(new Set([filter, ...viewedFilters])).slice(0, 20); // Limit to the last 20 filters
 
-  setCookie("user_product_views", JSON.stringify(uniqueViews), 30);
+  // Store the unique filters in the cookie (for 30 days)
+  setCookie("user_product_views", JSON.stringify(uniqueFilters), 30);
 }
+
 
 // Function to store cart item
 export function storeCartItem(productId: string, sizeId: string, quantity: number) {

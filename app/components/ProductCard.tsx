@@ -1,6 +1,6 @@
 import { Product } from "@prisma/client";
 import Image from "next/image";
-import ProductLink from "./ProductLink"; // Import the updated client component
+import ProductLink from "./ProductLink"; // Import the updated ProductLink component
 
 interface ProductCardProps {
   product: Product;
@@ -15,7 +15,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   return (
     <div className="product-card shadow-md rounded-md overflow-hidden">
-      <ProductLink productId={product.id}>
+      <ProductLink productId={product.id} filter={product.filter}> {/* Pass both ID and filter */}
         <Image
           src={firstImage}
           alt={product.name}

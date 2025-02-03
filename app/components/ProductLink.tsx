@@ -1,16 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { storeProductView } from "@/utils/cookies";
+import { storeProductView } from "@/utils/cookies"; // Assuming you have this utility for storing filters
 
 interface ProductLinkProps {
   productId: string;
+  filter: string; // Add filter prop
   children: React.ReactNode;
 }
 
-export default function ProductLink({ productId, children }: ProductLinkProps) {
+export default function ProductLink({ productId, filter, children }: ProductLinkProps) {
   function handleProductClick() {
-    storeProductView(productId); // Use your existing function to store views
+    storeProductView(filter); // Store the filter of the viewed product
   }
 
   return (
@@ -19,4 +20,3 @@ export default function ProductLink({ productId, children }: ProductLinkProps) {
     </Link>
   );
 }
-

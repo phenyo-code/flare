@@ -15,32 +15,34 @@ export default function PersonalizedProductList({ allProducts }: PersonalizedPro
   const [loading, setLoading] = useState(true); // Loading state
 
   useEffect(() => {
-    const viewedProducts = getCookie("user_product_views");
+    const viewedFilters = getCookie("user_product_views");
     const searchedProducts = getCookie("user_searches");
 
-    // Initialize the set of product IDs to filter
-    let productIds: string[] = [];
+    // Initialize the set of filters to apply
+    let filters: string[] = [];
     
-    // Process viewed products
-    if (viewedProducts) {
-      const viewedProductIds: string[] = JSON.parse(viewedProducts);  // Array of product IDs
-      productIds = [...productIds, ...viewedProductIds]; // Add viewed product IDs
+    // Process viewed filters
+    if (viewedFilters) {
+      const viewedProductFilters: string[] = JSON.parse(viewedFilters);  // Array of product filters
+      filters = [...filters, ...viewedProductFilters]; // Add viewed product filters
     }
 
-    // Process searched products (this is based on product names, you might need to adjust based on your schema)
+    // Process searched products (this is based on search terms, you might need to adjust based on your schema)
     if (searchedProducts) {
       const searchTerms: string[] = JSON.parse(searchedProducts);  // Array of search terms
-      const matchingProductIds = allProducts
+      const matchingProductFilters = allProducts
         .filter((product) =>
           searchTerms.some((term) => product.name.toLowerCase().includes(term.toLowerCase()))
         )
-        .map((product) => product.id); // Find products that match any of the search terms
+        .map((product) => product.filter); // Find products that match any of the search terms and store their filter
 
-      productIds = [...productIds, ...matchingProductIds]; // Add matching products from searches
+      filters = [...filters, ...matchingProductFilters]; // Add matching product filters from searches
     }
 
-    // Filter the available products to only include those that match the viewed/search criteria
-    const filteredProducts = allProducts.filter((product) => productIds.includes(product.id));
+    // Filter the available products to only include those that match the viewed/search filter criteria
+    const filteredProducts = allProducts.filter((product) =>
+      filters.some((filter) => product.filter.toLowerCase().includes(filter.toLowerCase()))
+    );
 
     setPersonalizedProducts(filteredProducts);
     setLoading(false); // Done with fetching data
