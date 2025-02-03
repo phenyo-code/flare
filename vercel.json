@@ -1,0 +1,12 @@
+{
+    "build": {
+      "env": {
+        "DATABASE_URL": "mongodb+srv://phenyokoikoi3:nzAHdKSLdxHJ9z0S@cluster0.a2mwt.mongodb.net/flaredb?retryWrites=true&w=majority&appName=Cluster0",
+        "NEXTAUTH_SECRET": "5gvhg/hjhjhj234?67SDFGHJK/07"
+      },
+      "commands": {
+        "build": "prisma generate && next build"
+      }
+    }
+  }
+  
