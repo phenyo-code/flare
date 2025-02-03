@@ -6,19 +6,20 @@ const nextConfig = {
                 hostname: 'images.unsplash.com',
             },
             {
-                hostname: 'plus.unsplash.com', // Add another hostname here
+                hostname: 'plus.unsplash.com',
             },
             {
-                hostname: 'another-image-source.com', // Add more hostnames as needed
+                hostname: 'another-image-source.com',
             },
         ],
     },
     experimental: {
         serverActions: {
-            // Specify any options here if needed, otherwise leave it empty
-            enable: true, // You can remove this line if no extra configuration is needed.
-          },
+            enable: true,
+        },
     },
+    matcher: ["/product/:path*"], // Ensure middleware runs only on product pages
 };
 
 export default nextConfig;
+

@@ -16,6 +16,7 @@ model Product {
   category      String
   filter        String
   images        String[] // Multiple images for the product, stored as an array of strings
+   isRecommended Boolean  @default(false)  // Add this field
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   CartItem      CartItem[]

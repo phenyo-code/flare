@@ -30,3 +30,33 @@ export default withAuth(
 export const config = { 
   matcher: ['/admin', '/products', '/orders-admin', '/add-product', '/update-product' ],  // Protect these pages
 };
+
+
+
+
+import { NextRequest } from "next/server";
+
+export function middleware(req: NextRequest) {
+  const url = new URL(req.nextUrl);
+  if (url.pathname.startsWith("/product/")) {
+    const productId = url.pathname.split("/").pop(); // Get product ID from URL
+    if (productId) {
+      const views = req.cookies.get("productViews")?.value;
+      const viewedProducts = views ? JSON.parse(views) : [];
+
+      if (!viewedProducts.includes(productId)) {
+        viewedProducts.push(productId);
+      }
+
+      const res = NextResponse.next();
+      res.cookies.set("productViews", JSON.stringify(viewedProducts), {
+        path: "/",
+        maxAge: 60 * 60 * 24 * 7, // Store for 7 days
+      });
+
+      return res;
+    }
+  }
+
+  return NextResponse.next();
+}

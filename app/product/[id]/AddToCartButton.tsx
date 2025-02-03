@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { createCartItemAction } from "../../actions/cart";
+import { storeCartItem } from "../../utils/cookies"; // Import function to store in cookies
 
 interface AddToCartButtonProps {
     productId: string;
@@ -22,6 +23,7 @@ export default function AddToCartButton({ productId, cartId, selectedSizeId }: A
         startTransition(async () => {
             try {
                 await createCartItemAction(cartId, productId, selectedSizeId);
+                storeCartItem(productId, selectedSizeId, 1); // Store item in cookies
                 setIsAdded(true);
             } catch (error) {
                 console.error("Error adding to cart:", error);
