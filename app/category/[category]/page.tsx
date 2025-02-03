@@ -3,6 +3,7 @@ import CategoryHeader from "../../components/CategoryHeader";
 import HeroSection from "../../components/HeroSection";
 import Header from "../../components/Header";
 import ProductList from "../../components/ProductList";
+import FreeDeliveryBanner from "@/components/FreeDelivery";
 
 // Type for the category params
 interface CategoryPageParams {
@@ -35,6 +36,7 @@ export default async function CategoryPage({ params }: { params: Promise<Categor
 
   return (
     <div>
+      <FreeDeliveryBanner />
       <Header />
       <CategoryHeader activeCategory={category.toUpperCase()} />
       <HeroSection product={products[0]} />

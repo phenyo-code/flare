@@ -5,6 +5,7 @@ import Footer from "../components/Footer";
 import Featured from "../components/Featured";
 import PersonalizedProductList from "../components/PersonalizedProductList"; // Direct import
 import InteractionMessage from "@/components/InteractionMessage";
+import FreeDeliveryBanner from "@/components/FreeDelivery";
 
 export const metadata = {
   title: "For You | FLARE",
@@ -38,6 +39,7 @@ export default async function ForYouPage() {
 
   return (
     <div>
+      <FreeDeliveryBanner />
       <Header />
       <CategoryHeader activeCategory="FOR YOU" />
       <div>

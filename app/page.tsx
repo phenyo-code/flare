@@ -4,6 +4,8 @@ import CategoryHeader from "./components/CategoryHeader";
 import ProductList from "./components/ProductList";
 import Footer from "./components/Footer";
 import Featured from "./components/Featured";
+import FreeDeliveryBanner from "./components/FreeDelivery";
+
 
 
 export const metadata = {
@@ -35,6 +37,7 @@ export default async function Home() {
 
   return (
     <div>
+      <FreeDeliveryBanner />
       <Header />
       <CategoryHeader activeCategory={""} />
       <div>

@@ -3,6 +3,7 @@
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { removeCartItemAction } from "../../actions/cart";
+import { FaTrash, FaSpinner } from "react-icons/fa"; // Import spinner icon
 
 interface RemoveFromCartButtonProps {
     cartItemId: string;
@@ -21,11 +22,15 @@ export default function RemoveFromCartButton({ cartItemId }: RemoveFromCartButto
 
     return (
         <button
-            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+            className="bg-gray-200 text-gray-500 p-2 rounded"
             onClick={handleRemove}
             disabled={isPending}
         >
-            {isPending ? "Removing..." : "Remove"}
+            {isPending ? (
+                <FaSpinner className="animate-spin text-gray-400" size={13} />
+            ) : (
+                <FaTrash size={13} />
+            )}
         </button>
     );
 }
