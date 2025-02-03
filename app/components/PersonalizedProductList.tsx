@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { getCookie } from "@/utils/cookies";
 import ProductList from "./ProductList";  // Assuming ProductList is the component that displays products
 import { Product } from "@prisma/client";
+import InteractionMessage from "@/components/InteractionMessage"; // Import the InteractionMessage component
 
 interface PersonalizedProductListProps {
   allProducts: Product[]; // Assuming all products are passed from the server or are already available in the app
@@ -51,15 +52,12 @@ export default function PersonalizedProductList({ allProducts }: PersonalizedPro
 
   return (
     <div>
-       {/* Add the title above the product list */}
+      {/* Conditionally render ProductList or InteractionMessage */}
       {personalizedProducts.length > 0 ? (
-        
         <ProductList products={personalizedProducts} />
       ) : (
-        // No message is shown when there are no personalized products.
-        null
+        <InteractionMessage /> // Show interaction message if no personalized products
       )}
     </div>
   );
 }
-

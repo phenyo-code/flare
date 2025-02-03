@@ -4,7 +4,7 @@ import CategoryHeader from "./components/CategoryHeader";
 import ProductList from "./components/ProductList";
 import Footer from "./components/Footer";
 import Featured from "./components/Featured";
-import PersonalizedProductList from "./components/PersonalizedProductList"; // Direct import
+
 
 export const metadata = {
   title: "Latest Products | FLARE",
@@ -43,7 +43,6 @@ export default async function Home() {
         {/* Pass the selected product to Featured */}
         <Featured product={selectedFeaturedProduct} />
         {/* Pass all products to PersonalizedProductList */}
-        <PersonalizedProductList allProducts={processedProducts} />
         {/* Display all products */}
         <ProductList products={processedProducts} />
       </div>

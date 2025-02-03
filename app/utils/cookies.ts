@@ -74,3 +74,8 @@ export function storeCartItem(productId: string, sizeId: string, quantity: numbe
 
   setCookie("user_cart", JSON.stringify(cartItems), 30);
 }
+
+export function storeUserInteraction() {
+  // Set cookie to indicate user has interacted
+  setCookie("user_interaction", "true", 30); // This cookie will last for 30 days
+}
