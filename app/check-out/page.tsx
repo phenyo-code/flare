@@ -1,14 +1,22 @@
-// app/check-out/page.tsx
 "use client";
 
-import { useSearchParams } from 'next/navigation'; // To access query params
-import { PlaceOrder } from './actions/placeOrder'; // Importing server action
-import SearchHeader from '../components/SearchHeader';
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation"; // To access query params
+import { PlaceOrder } from "./actions/placeOrder"; // Importing server action
+import SearchHeader from "../components/SearchHeader";
 
 export default function CheckoutPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CheckoutContent />
+    </Suspense>
+  );
+}
+
+function CheckoutContent() {
   const searchParams = useSearchParams();
-  const success = searchParams?.get('success');
-  const status = searchParams?.get('status');
+  const success = searchParams?.get("success");
+  const status = searchParams?.get("status");
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -39,9 +47,12 @@ export default function CheckoutPage() {
           </p>
         )}
 
-       <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label htmlFor="shippingName" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="shippingName"
+              className="block text-sm font-medium text-gray-700"
+            >
               Full Name
             </label>
             <input
@@ -54,7 +65,10 @@ export default function CheckoutPage() {
           </div>
 
           <div className="mb-4">
-            <label htmlFor="shippingEmail" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="shippingEmail"
+              className="block text-sm font-medium text-gray-700"
+            >
               Email Address
             </label>
             <input
@@ -67,7 +81,10 @@ export default function CheckoutPage() {
           </div>
 
           <div className="mb-4">
-            <label htmlFor="shippingAddress" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="shippingAddress"
+              className="block text-sm font-medium text-gray-700"
+            >
               Shipping Address
             </label>
             <textarea

@@ -1,20 +1,21 @@
-import { prisma } from "../../lib/db/prisma"; // Ensure correct path
+import { prisma } from "@/lib/db/prisma";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../api/auth/[...nextauth]/options";
+import { authOptions } from "@/api/auth/[...nextauth]/options";
 import Image from "next/image";
 import Link from "next/link";
 import Sizes from "./Sizes";
-import SearchHeader from "../../components/SearchHeader";
-import Footer from "../../components/Footer";
+import SearchHeader from "@/components/SearchHeader";
+import Footer from "@/components/Footer";
+import { notFound } from "next/navigation"; // To handle 404 when product is not found
 
-// Ensure `params` is typed correctly as an object (no Promise!)
+// Adjust the type for the params to be asynchronous.
 type ProductPageProps = {
-  params: { id: string }; // Correct type for params
+  params: Promise<{ id: string }>;
 };
 
 // Generate metadata for SEO, using the product ID
 export async function generateMetadata({ params }: ProductPageProps) {
-  const { id } = params;
+  const { id } = await params; // Wait for params to be resolved
 
   // Fetch product details for metadata (like title, description)
   const product = await prisma.product.findUnique({
@@ -32,8 +33,7 @@ export async function generateMetadata({ params }: ProductPageProps) {
 
 // Main ProductDetails component
 export default async function ProductDetails({ params }: ProductPageProps) {
-  // Destructure the `id` from params (no need to await params, it's not a Promise)
-  const { id } = params;
+  const { id } = await params; // Wait for params to be resolved
 
   // Fetch session data (user info)
   const session = await getServerSession(authOptions);
@@ -46,7 +46,7 @@ export default async function ProductDetails({ params }: ProductPageProps) {
 
   // Handle case when product is not found
   if (!product) {
-    return <p>Product not found.</p>;
+    notFound(); // Use the `notFound` function to show 404 page
   }
 
   let cart = null;

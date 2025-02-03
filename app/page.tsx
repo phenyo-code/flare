@@ -18,7 +18,7 @@ export default async function Home() {
   });
 
   // Specify the product name you want to feature (e.g., "Special Product Name")
-  const featuredProductName = "Flare Jacket Multi color";
+  const featuredProductName = "Women's Hoodie";
 
   // Find the featured product based on the product name
   const featuredProduct = products.find(product => product.name === featuredProductName);

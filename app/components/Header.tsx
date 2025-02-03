@@ -73,7 +73,7 @@ const Header = () => {
               <FiShoppingCart className="text-gray-600 text-2xl cursor-pointer" />
               {/* Show the cart item count as a very small bubble */}
               {cartItems > 0 && (
-                <span className="absolute top-[-8] right-[-7] w-3.5 h-3.5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                <span className="absolute top-[0] right-[0] w-3.5 h-3.5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
                   {cartItems}
                 </span>
               )}
@@ -150,16 +150,16 @@ const Header = () => {
           {/* Conditionally show the logout or login button */}
           {session ? (
             <a href="/signout" 
-            className="w-full text-red-800  font-bold p-2"
+            className="w-full text-white bg-red-500  font-bold p-2"
           >
-            <li className="py-4 px-6 border-b border-gray-200">
+            <li className="py-4 px-6 ">
               
                 Logout
               
             </li>
             </a>
           ) : (
-            <Link href="/login" className="text-red-800  font-bold">
+            <Link href="/login" className="text-blue-500  font-bold">
             <li className="py-4 px-6 border-b border-gray-200">
               
                 Login

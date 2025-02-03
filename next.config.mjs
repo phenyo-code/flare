@@ -14,7 +14,10 @@ const nextConfig = {
         ],
     },
     experimental: {
-        serverActions: true,
+        serverActions: {
+            // Specify any options here if needed, otherwise leave it empty
+            enable: true, // You can remove this line if no extra configuration is needed.
+          },
     },
 };
 

@@ -10,10 +10,12 @@ export async function updateProduct(formData: FormData) {
     const filter = formData.get("filter")?.toString();
     const image = formData.get("image")?.toString();
 
-    if (!id) {
-        throw new Error("Product ID is required");
+    // Validate the required fields
+    if (!id || !name || !price || !category || !filter || !image) {
+        throw new Error("Please fill in all required fields.");
     }
 
+    // Perform the update operation
     await prisma.product.update({
         where: { id },
         data: {
@@ -21,7 +23,7 @@ export async function updateProduct(formData: FormData) {
             price,
             category,
             filter,
-            image,
+            images: [image],
         },
     });
 }
