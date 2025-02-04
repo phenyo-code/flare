@@ -17,6 +17,7 @@ model Product {
   filter        String
   images        String[] // Multiple images for the product, stored as an array of strings
    isRecommended Boolean  @default(false)  // Add this field
+   reviews   Review[] // Add this line to reference the reviews
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   CartItem      CartItem[]
@@ -80,6 +81,7 @@ model Order {
   shippingName    String
   shippingEmail   String
   shippingAddress String
+   shippingPhoneNumber String?  // Optional phone number field
   status          String      // e.g., 'pending', 'paid', 'shipped'
   totalPrice      Int
   createdAt       DateTime    @default(now())
@@ -118,6 +120,7 @@ model User {
   orders     Order[] // User can have multiple orders
 
   @@map("users")
+  Review Review[]
 }
 
 model GoogleUser {
@@ -143,4 +146,18 @@ model Session {
   updatedAt DateTime @updatedAt
 
   @@map("sessions")
+}
+
+model Review {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  productId String   @db.ObjectId
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating    Int      
+  comment   String   
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("reviews")
 }

@@ -7,8 +7,6 @@ import { authOptions } from "../../api/auth/[...nextauth]/options";
 
 // Server action function to place an order
 export async function PlaceOrder(formData: FormData): Promise<void> {
-
-
   // Fetch user session to get logged-in user's details
   const session = await getServerSession(authOptions);
 
@@ -20,9 +18,10 @@ export async function PlaceOrder(formData: FormData): Promise<void> {
   const shippingName = formData.get("shippingName")?.toString();
   const shippingEmail = formData.get("shippingEmail")?.toString();
   const shippingAddress = formData.get("shippingAddress")?.toString();
+  const shippingPhoneNumber = formData.get("shippingPhoneNumber")?.toString(); // New field
 
   // Check if required fields are provided
-  if (!shippingName || !shippingEmail || !shippingAddress) {
+  if (!shippingName || !shippingEmail || !shippingAddress || !shippingPhoneNumber) {
     throw new Error("Please fill in all fields.");
   }
 
@@ -51,6 +50,7 @@ export async function PlaceOrder(formData: FormData): Promise<void> {
       shippingName,
       shippingEmail,
       shippingAddress,
+      shippingPhoneNumber, // Add phone number
       status: "pending", // Default status
       totalPrice: 0, // Placeholder for total price, will update later
     },

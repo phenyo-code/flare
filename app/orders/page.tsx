@@ -128,10 +128,13 @@ export default async function OrdersPage() {
                 {/* Shipping Information */}
                 <div className="">
                   <div className="flex-1">
-                    <h5 className="font-semibold text-gray-800">Shipping Details</h5>
-                    <p className="text-gray-700">Name: {order.shippingName}</p>
-                    <p className="text-gray-700">Email: {order.shippingEmail}</p>
-                    <p className="text-gray-700">Address: {order.shippingAddress}</p>
+                  <h5 className="font-semibold text-gray-800">Shipping Details</h5>
+                  <p className="text-gray-700">Name: {order.shippingName}</p>
+                  <p className="text-gray-700">Email: {order.shippingEmail}</p>
+                  <p className="text-gray-700">Address: {order.shippingAddress}</p>
+                  {order.shippingPhoneNumber && (
+                    <p className="text-gray-700">Phone Number: {order.shippingPhoneNumber}</p>
+                  )}
                   </div>
                 </div>
               </div>

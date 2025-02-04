@@ -1,13 +1,13 @@
 "use client";
 
-import { FaTruckMoving } from "react-icons/fa";
+import { FaTruck } from "react-icons/fa";
 
 export default function FreeDeliveryBanner() {
   return (
-    <div className="bg-black text-white text-center py-3 text-sm font-medium">
+    <div className="bg-black text-gray-400 text-center py-3 text-sm font-medium">
       <div className="flex items-center justify-center gap-2">
-        <span>Free deliveries for orders over R1050</span>
-        <FaTruckMoving className="text-red-500 text-lg" />
+        <span>Free deliveries for orders from R1000</span>
+        <FaTruck className="text-gray-200 text-lg" />
       </div>
     </div>
   );

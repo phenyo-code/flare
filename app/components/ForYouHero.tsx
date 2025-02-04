@@ -6,7 +6,7 @@ interface HeroSectionProps {
   product: Product | null;
 }
 
-export default function Featured({ product }: HeroSectionProps) {
+export default function ForYouHero({ product }: HeroSectionProps) {
   if (!product) {
     return <p>No product available in this category.</p>;
   }
@@ -32,12 +32,12 @@ export default function Featured({ product }: HeroSectionProps) {
       />
       {/* Overlay Content */}
       <div className="absolute top-1/2 transform -translate-y-1/2 text-center text-white w-full">
-        <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold mb-4">FLARE WIDE DEALS</h2>
+        <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4">Best Deals For You</h2>
 
         {/* Display the discount percentage */}
         {product.Originalprice && discount > 0 && (
           <p className="mb-6 text-lg sm:text-2xl md:text-2xl font-semibold">
-            {discount.toFixed(0)}% OFF FLARE WIDE.
+           Like this {discount.toFixed(0)}% OFF {product.filter}
           </p>
         )}
 

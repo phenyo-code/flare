@@ -22,12 +22,12 @@ export default function RemoveFromCartButton({ cartItemId }: RemoveFromCartButto
 
     return (
         <button
-            className="bg-gray-200 text-gray-500 p-2 rounded"
+            className="bg-gray-100 text-gray-400 p-2 rounded"
             onClick={handleRemove}
             disabled={isPending}
         >
             {isPending ? (
-                <FaSpinner className="animate-spin text-gray-400" size={13} />
+                <FaSpinner className="animate-spin text-gray-400" size={16} />
             ) : (
                 <FaTrash size={13} />
             )}

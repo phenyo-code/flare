@@ -1,23 +1,22 @@
 import { prisma } from "@/lib/db/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/api/auth/[...nextauth]/options";
-import Image from "next/image";
 import Link from "next/link";
 import Sizes from "./Sizes";
 import SearchHeader from "@/components/SearchHeader";
 import Footer from "@/components/Footer";
-import { notFound } from "next/navigation"; // To handle 404 when product is not found
+import { notFound } from "next/navigation";
+import Reviews from "./Reviews";
+import ImageWrapper from "./ImageWrapper";
 
-// Adjust the type for the params to be asynchronous.
 type ProductPageProps = {
   params: Promise<{ id: string }>;
 };
 
-// Generate metadata for SEO, using the product ID
+// Generate metadata for SEO
 export async function generateMetadata({ params }: ProductPageProps) {
-  const { id } = await params; // Wait for params to be resolved
+  const { id } = await params;
 
-  // Fetch product details for metadata (like title, description)
   const product = await prisma.product.findUnique({
     where: { id },
     select: { name: true },
@@ -31,27 +30,21 @@ export async function generateMetadata({ params }: ProductPageProps) {
   };
 }
 
-// Main ProductDetails component
 export default async function ProductDetails({ params }: ProductPageProps) {
-  const { id } = await params; // Wait for params to be resolved
-
-  // Fetch session data (user info)
+  const { id } = await params;
   const session = await getServerSession(authOptions);
 
-  // Fetch product details from the database using Prisma
   const product = await prisma.product.findUnique({
     where: { id },
-    include: { sizes: true }, // Include sizes with the product details
+    include: { sizes: true },
   });
 
-  // Handle case when product is not found
   if (!product) {
-    notFound(); // Use the `notFound` function to show 404 page
+    notFound();
   }
 
   let cart = null;
   if (session?.user) {
-    // Fetch the user's cart or create a new one if not exists
     cart = await prisma.cart.findFirst({ where: { userId: session.user.id } });
 
     if (!cart) {
@@ -61,30 +54,56 @@ export default async function ProductDetails({ params }: ProductPageProps) {
     }
   }
 
+  const discount = product.Originalprice
+  ? ((product.Originalprice - product.price) / product.Originalprice) * 100
+  : 0;
+
   return (
     <div className="overflow-hidden">
       <SearchHeader />
       <div className="container mx-auto">
         <div className="flex flex-col lg:flex-row">
+          {/* Image Slider Section */}
           <div className="w-full lg:w-1/2 flex justify-center">
-            <Image
-              src={product.images[0]}
-              alt={product.name}
-              width={400}
-              height={400}
-              className="object-cover w-full"
-            />
+            <ImageWrapper images={product.images} />
           </div>
-          <div className="w-full lg:w-1/2 lg:pl-8 mx-4 mt-4">
-            <h2 className="text-3xl font-semibold">{product.name}</h2>
-            <p className="text-lg text-red-500 mt-2">R{product.price}</p>
-            {/* Sizes Component - Pass product sizes and cart ID */}
-            <Sizes productId={product.id} sizes={product.sizes} cartId={cart?.id} />
 
-            {/* Display login prompt if user is not logged in */}
+          {/* Product Details Section */}
+          <div className="w-full lg:w-1/2 lg:pl-8 mt-2">
+            <h3 className="text-3xl text-red-500 mt-2 ml-4 font-bold">
+              R{product.price}
+            </h3>
+
+            <div className="flex items-center mb-2">
+              <p className="border px-1 py-1 rounded-lg ml-4 text-transparent bg-gradient-to-br from-black to-red-500 bg-clip-text text-sm font-extrabold tracking-widest uppercase">
+                FLARE
+              </p>
+              <h3 className="text-lg font-semibold ml-1 truncate overflow-hidden whitespace-nowrap">
+                {product.name}
+              </h3>
+             
+            </div>
+
+            {product.Originalprice && discount > 0 && (
+              <p className="font-semibold text-sm sm:text-xs px-2 text-red-500 ml-2 mb-2 uppercase">
+                Shop Now and Save {discount.toFixed(0)}%  Off this {product.filter}
+              </p>
+            )}
+
+
+
+            <div className="shadow-md pb-2 mt-4">
+              <Sizes productId={product.id} sizes={product.sizes} cartId={cart?.id} />
+            </div>
+            <div className="shadow-md mt-4 border-t pb-4">
+              <Reviews productId={product.id} />
+            </div>
+
             {!session?.user && (
               <div className="text-center mt-10">
-                <p className="text-lg text-gray-600">You need to log in to add items to the cart.</p>
+                <p className="text-lg text-gray-600">
+                  You need to log in to add items to the cart.
+                </p>
                 <Link href="/login">
                   <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-6 mt-4">
                     Login
@@ -95,7 +114,9 @@ export default async function ProductDetails({ params }: ProductPageProps) {
           </div>
         </div>
       </div>
-      <Footer />
+      <div className="mt-8">
+        <Footer />
+      </div>
     </div>
   );
 }

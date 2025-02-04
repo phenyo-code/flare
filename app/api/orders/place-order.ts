@@ -17,8 +17,9 @@ export async function POST(request: Request) {
     const shippingName = formData.get("shippingName");
     const shippingEmail = formData.get("shippingEmail");
     const shippingAddress = formData.get("shippingAddress");
+    const shippingPhoneNumber = formData.get("shippingPhoneNumber"); // New phone number field
 
-    if (!shippingName || !shippingEmail || !shippingAddress) {
+    if (!shippingName || !shippingEmail || !shippingAddress || !shippingPhoneNumber) {
       return NextResponse.json({ error: "Please fill in all fields correctly." }, { status: 400 });
     }
 
@@ -39,6 +40,7 @@ export async function POST(request: Request) {
         shippingName,
         shippingEmail,
         shippingAddress,
+        shippingPhoneNumber, // Store the phone number in the order
         status: "pending",
         totalPrice: 0,
       },

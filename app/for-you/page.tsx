@@ -6,6 +6,7 @@ import Featured from "../components/Featured";
 import PersonalizedProductList from "../components/PersonalizedProductList"; // Direct import
 import InteractionMessage from "@/components/InteractionMessage";
 import FreeDeliveryBanner from "@/components/FreeDelivery";
+import ForYouHero from "@/components/ForYouHero";
 
 export const metadata = {
   title: "For You | FLARE",
@@ -20,7 +21,7 @@ export default async function ForYouPage() {
   });
 
   // Specify the product name you want to feature (e.g., "Special Product Name")
-  const featuredProductName = "Vintage Multicolor Jacket Streetwear - FLARE Good";
+  const featuredProductName = "Streetwear Vintage Multicolor Jacket";
 
   // Find the featured product based on the product name
   const featuredProduct = products.find(product => product.name === featuredProductName);
@@ -43,7 +44,7 @@ export default async function ForYouPage() {
       <Header />
       <CategoryHeader activeCategory="FOR YOU" />
       <div>
-        <Featured product={selectedFeaturedProduct} />
+        <ForYouHero product={selectedFeaturedProduct} />
         
         {/* Conditionally render the PersonalizedProductList or InteractionMessage */}
         {hasPersonalizedProducts ? (

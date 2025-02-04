@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { useSearchParams } from "next/navigation"; // To access query params
 import { PlaceOrder } from "./actions/placeOrder"; // Importing server action
 import SearchHeader from "../components/SearchHeader";
+import CheckoutButton from "./PlaceOrderButton";
 
 export default function CheckoutPage() {
   return (
@@ -95,13 +96,25 @@ function CheckoutContent() {
             />
           </div>
 
-          <button
-            type="submit"
-            className="w-full bg-blue-500 text-white p-2 rounded-md mt-4"
-            disabled={status === "pending"} // Disable button while processing
-          >
-            {status === "pending" ? "Processing..." : "Place Order"}
-          </button>
+          {/* New phone number field */}
+          <div className="mb-4">
+            <label
+              htmlFor="shippingPhoneNumber"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Phone Number
+            </label>
+            <input
+              type="text"
+              id="shippingPhoneNumber"
+              name="shippingPhoneNumber"
+              className="w-full p-2 mt-1 border border-gray-300 rounded-md"
+              required
+            />
+          </div>
+
+          <CheckoutButton status={status} />
+
         </form>
       </div>
     </div>

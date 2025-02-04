@@ -8,18 +8,19 @@ export const metadata = {
 };
 
 export default async function ManageOrdersPage() {
-  // Fetch all orders and order them by creation date in descending order
+  // Fetch all orders including order items and user details
   const orders = await prisma.order.findMany({
     orderBy: {
-      createdAt: "desc", // Sort orders by creation date in descending order
+      createdAt: "desc",
     },
     include: {
       items: {
         include: {
-          product: true, // Include product details for each item in the order
-          size: true,    // Include size details for each item
+          product: true,
+          size: true,
         },
       },
+      user: true, // Optional: Include user details for reference
     },
   });
 
@@ -33,16 +34,28 @@ export default async function ManageOrdersPage() {
           <p>No orders to manage.</p>
         ) : (
           orders.map((order) => (
-            <div key={order.id} className="mb-6">
-              <h3 className="font-semibold">Order ID: {order.id}</h3>
-              <p>Status: {order.status}</p>
-              <p>Total Price: R{order.totalPrice}</p>
+            <div key={order.id} className="mb-6 p-4 border-b">
+              <h3 className="font-semibold text-lg mb-2">Order ID: {order.id}</h3>
+              <p><strong>Status:</strong> {order.status}</p>
+              <p><strong>Total Price:</strong> R{order.totalPrice}</p>
 
+              {/* Shipping Details */}
+              <div className="mt-4 bg-gray-100 p-4 rounded-lg">
+                <h4 className="font-semibold text-gray-700">Shipping Details:</h4>
+                <p><strong>Name:</strong> {order.shippingName}</p>
+                <p><strong>Email:</strong> {order.shippingEmail}</p>
+                <p><strong>Address:</strong> {order.shippingAddress}</p>
+                {order.shippingPhoneNumber && (
+                  <p><strong>Phone:</strong> {order.shippingPhoneNumber}</p>
+                )}
+              </div>
+
+              {/* Order Items */}
               <div className="mt-4">
-                <h4 className="font-semibold">Items:</h4>
+                <h4 className="font-semibold text-gray-700">Items:</h4>
                 <ul>
                   {order.items.map((item) => (
-                    <li key={item.productId} className="flex justify-between items-center mb-4">
+                    <li key={item.productId} className="flex justify-between items-center mb-4 border p-2 rounded-md">
                       {/* Product Image and Link */}
                       {item.product.images ? (
                         <Link href={`/product/${item.product.id}`} className="mr-4">
@@ -59,7 +72,7 @@ export default async function ManageOrdersPage() {
                       <div className="flex-1">
                         <span className="font-semibold">{item.product.name}</span>
                         <div className="text-sm text-gray-600">
-                          {item.quantity} x R{item.price}
+                          {item.quantity} x R{item.product.price}
                         </div>
 
                         {/* Show the size if available */}
@@ -74,15 +87,12 @@ export default async function ManageOrdersPage() {
                 </ul>
               </div>
 
+              {/* Order Status Update Form */}
               <div className="mt-4">
-                {/* Form to update the order status */}
                 <form action={updateOrderStatus}>
                   <input type="hidden" name="orderId" value={order.id} />
 
-                  <label
-                    htmlFor="status"
-                    className="block text-sm font-medium text-gray-700"
-                  >
+                  <label htmlFor="status" className="block text-sm font-medium text-gray-700">
                     Update Status
                   </label>
                   <select
@@ -101,7 +111,7 @@ export default async function ManageOrdersPage() {
 
                   <button
                     type="submit"
-                    className="w-full bg-blue-500 text-white p-2 rounded-md mt-4"
+                    className="w-full bg-blue-500 text-white p-2 rounded-md mt-4 hover:bg-blue-600 transition duration-300"
                   >
                     Update Status
                   </button>

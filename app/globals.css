@@ -65,3 +65,78 @@ body {
     column-gap: 8px;
   }
 }
+
+
+
+.star-rating {
+  display: flex;
+}
+
+.star-rating label {
+  display: inline-block;
+}
+
+.star-rating svg {
+  cursor: pointer;
+  transition: fill 0.3s ease;
+}
+
+.star-rating svg:hover,
+.star-rating input:checked ~ label svg {
+  fill: gold;
+}
+
+.star-rating input:checked ~ label svg {
+  fill: gold;
+}
+
+/* Add this to your global stylesheet or inline styles */
+@keyframes bounce {
+  0% {
+    transform: translateY(0);
+  }
+  25% {
+    transform: translateY(-6px);
+  }
+  50% {
+    transform: translateY(3px);
+  }
+  75% {
+    transform: translateY(-2px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes cartMove {
+  0% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(20px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.cart-icon {
+  transition: transform 0.3s ease;
+}
+
+.cart-icon.bounce {
+  animation: bounce 0.5s ease-in-out;
+}
+
+.cart-icon.added {
+  animation: cartMove 0.6s ease-in-out;
+}
+
+.add-to-cart-button {
+  transition: all 0.3s ease;
+}
+
+.add-to-cart-button:hover {
+  animation: pulse 0.6s ease-in-out;
+}

@@ -9,7 +9,7 @@ interface CartTotalProps {
 export default function CartTotal({ total }: CartTotalProps) {
   const [finalTotal, setFinalTotal] = useState(total);
   const deliveryFee = 100;
-  const freeDeliveryThreshold = 1050;
+  const freeDeliveryThreshold = 1000;
 
   useEffect(() => {
     if (total < freeDeliveryThreshold) {

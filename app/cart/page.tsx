@@ -8,6 +8,7 @@ import { authOptions } from "../api/auth/[...nextauth]/options";
 import PersonalizedProductList from "../components/PersonalizedProductList"; // Import your personalized list component
 import { Product } from "@prisma/client";
 import CartTotal from "@/components/CartTotal";
+import CheckoutButton from "./CheckOutButton";
 
 export default async function CartPage() {
   // Get session to identify the user
@@ -90,7 +91,7 @@ export default async function CartPage() {
                       <div className="flex items-center mt-1">
                         <p className="text-red-500 font-semibold">R{item.product.price}</p>
                         {item.size && (
-                          <span className="ml-2 bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-xs">
+                          <span className="ml-2 bg-gray-100 text-gray-400 px-3 py-1 rounded-full text-xs">
                             Size / {item.size.size}
                           </span>
                         )}
@@ -106,15 +107,12 @@ export default async function CartPage() {
 
             {/* Total Price and Checkout Button */}
             {cart && cart.items.length > 0 && (
-          <div className="mt-6 flex justify-between items-center">
+          <div className="mt-6 ">
             <CartTotal
               total={cart.items.reduce((total, item) => total + item.product.price * item.quantity, 0)}
             />
-            <Link href="/check-out">
-              <button className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-6 rounded">
-                Proceed to Checkout
-              </button>
-            </Link>
+            <CheckoutButton />
+
           </div>
         )}
           </div>
