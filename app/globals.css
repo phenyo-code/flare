@@ -140,3 +140,14 @@ body {
 .add-to-cart-button:hover {
   animation: pulse 0.6s ease-in-out;
 }
+
+/* Example of global styles for light and dark themes */
+body.light {
+  background-color: white;
+  color: black;
+}
+
+body.dark {
+  background-color: #1a202c; /* Dark background */
+  color: white; /* Light text */
+}

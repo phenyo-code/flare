@@ -2,7 +2,7 @@
 
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation"; // To access query params
-import { PlaceOrder } from "./actions/placeOrder"; // Importing server action
+import { PlaceOrder } from "../actions/PlaceOrder"; // Importing server action
 import SearchHeader from "../components/SearchHeader";
 import CheckoutButton from "./PlaceOrderButton";
 

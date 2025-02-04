@@ -8,6 +8,9 @@ import Footer from "@/components/Footer";
 import { notFound } from "next/navigation";
 import Reviews from "./Reviews";
 import ImageWrapper from "./ImageWrapper";
+import Horizontal from "@/components/Horizontal";
+import { FaTruck } from "react-icons/fa";
+
 
 type ProductPageProps = {
   params: Promise<{ id: string }>;
@@ -44,6 +47,8 @@ export default async function ProductDetails({ params }: ProductPageProps) {
   }
 
   let cart = null;
+  let defaultAddress = null;
+
   if (session?.user) {
     cart = await prisma.cart.findFirst({ where: { userId: session.user.id } });
 
@@ -52,16 +57,32 @@ export default async function ProductDetails({ params }: ProductPageProps) {
         data: { userId: session.user.id, createdAt: new Date() },
       });
     }
+
+    // Fetch the default shipping address
+    defaultAddress = await prisma.shippingAddress.findFirst({
+      where: { userId: session.user.id, isDefault: true },
+    });
   }
 
+ // Ensure every product has a default Originalprice
+ // Example condition, adjust based on your criteria
+
   const discount = product.Originalprice
-  ? ((product.Originalprice - product.price) / product.Originalprice) * 100
-  : 0;
+    ? ((product.Originalprice - product.price) / product.Originalprice) * 100
+    : 0;
+
+    const relatedProducts = await prisma.product.findMany({
+      where: {
+        filter: product.filter, // Assuming you want to show similar products based on the filter
+        NOT: { id: product.id }, // Exclude the current product
+      },
+      take: 5, // Limit to 5 related products (you can adjust this)
+    });
 
   return (
-    <div className="overflow-hidden">
+    <div className="overflow-hidden  min-h-screen">
       <SearchHeader />
-      <div className="container mx-auto">
+      <div className="container bg-white mx-auto">
         <div className="flex flex-col lg:flex-row">
           {/* Image Slider Section */}
           <div className="w-full lg:w-1/2 flex justify-center">
@@ -70,7 +91,7 @@ export default async function ProductDetails({ params }: ProductPageProps) {
 
           {/* Product Details Section */}
           <div className="w-full lg:w-1/2 lg:pl-8 mt-2">
-            <h3 className="text-3xl text-red-500 mt-2 ml-4 font-bold">
+            <h3 className="text-2xl text-red-500 mt-2 ml-4 font-bold">
               R{product.price}
             </h3>
 
@@ -81,23 +102,56 @@ export default async function ProductDetails({ params }: ProductPageProps) {
               <h3 className="text-lg font-semibold ml-1 truncate overflow-hidden whitespace-nowrap">
                 {product.name}
               </h3>
-             
             </div>
 
             {product.Originalprice && discount > 0 && (
               <p className="font-semibold text-sm sm:text-xs px-2 text-red-500 ml-2 mb-2 uppercase">
-                Shop Now and Save {discount.toFixed(0)}%  Off this {product.filter}
+                Shop Now and Save {discount.toFixed(0)}% Off this {product.filter}
               </p>
             )}
 
+            
 
-
-            <div className="shadow-md pb-2 mt-4">
+            <div className="  pb-2 mt-4">
               <Sizes productId={product.id} sizes={product.sizes} cartId={cart?.id} />
             </div>
-            <div className="shadow-md mt-4 border-t pb-4">
+            
+            <span className="w-full block bg-gray-100 h-2"></span> {/* Gray separator */}
+
+            {/* Display Default Shipping Address */}
+            {defaultAddress && (
+              
+              <div className=" flex p-4 rounded-md  border-t border-gray-100">
+                <Link href="/addresses" className="block">
+                <p className="text-sm font-semibold overflow-hidden text-ellipsis whitespace-nowrap mr-6">
+                  Delivering to {defaultAddress.address}
+                </p>
+                <div className="flex items-center mt-2">
+                  <FaTruck className="text-gray-600 " />
+                <p className="text-xs text-gray-400 mx-2">Free delivery on orders over R1000</p>
+                </div>
+              </Link>
+
+                {/* Link to Address Page */}
+              </div>
+            )}
+
+<span className="w-full block bg-gray-100 h-2"></span> {/* Gray separator */}
+
+        <p className="text-sm text-gray-600 ml-4 font-medium mb-2 mt-2">Similar</p>
+         <Horizontal products={relatedProducts} /> {/* Pass products to Horizontal */}
+           
+   
+          <span className="w-full block bg-gray-100 h-2"></span> {/* Gray separator */}
+ 
+
+            <div className=" border-t border-gray-100 pb-4">
               <Reviews productId={product.id} />
             </div>
+
+            <span className="w-full block bg-gray-100 h-2"></span> {/* Gray separator */}
+
+            
 
             {!session?.user && (
               <div className="text-center mt-10">

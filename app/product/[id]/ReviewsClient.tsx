@@ -25,19 +25,18 @@ export default function ReviewsClient({
   const averageRating = reviews.length > 0 ? totalRating / reviews.length : 0;
 
   // Limit the number of reviews shown initially
-  const initialReviews = showAll ? reviews : reviews.slice(0, 2); // Show more or show the first 3 reviews
+  const initialReviews = showAll ? reviews : reviews.slice(0, 1); // Show more or show the first 3 reviews
   const hasMoreReviews = reviews.length > initialReviews.length;
 
   return (
     <div>
       <div className="mt-4 mx-4  mb-2 ">
         <div className="flex justify-between items-center mb-2 pb-4 border-b">
-          <span className="text-lg">Reviews({reviews.length})</span>
-          <span className="text-yellow-500">
-            {averageRating.toFixed(2)}{" "}
-            {"★".repeat(Math.round(averageRating))}{" "}
-            {"☆".repeat(5 - Math.round(averageRating))}
-          </span>
+          <span className="text-sm">Reviews({reviews.length})</span>
+          <p className="text-lg font-semibold ">
+  {averageRating.toFixed(1)} <span className="text-yellow-500">★</span>
+</p>
+
         </div>
 
         {reviews.length === 0 ? (
@@ -48,19 +47,21 @@ export default function ReviewsClient({
               <div key={review.id} className="border-b py-4">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center">
-                  <span className="font-semibold mr-2">{review.user.name}</span>
-                  <span className="text-yellow-500">
-                    {"★".repeat(review.rating)}{" "}
-                    {"☆".repeat(5 - review.rating)}
+                  <span className="font-semibold mr-2 text-sm">{review.user.name}</span>
+                  <span className="text-yellow-500 text-sm">
+                    {"★".repeat(review.rating)}{""}
+                    
                   </span>
                   </div>
-                  <span className="text-gray-500 right ">
+                  <span className="text-gray-500 text-sm right ">
                     {review.createdAt} {/* Now it's a string */}
                   </span>
                 </div>
                 <p className="mt-2">{review.comment}</p>
               </div>
             ))}
+
+            
 
             {/* Show "Show More" link if there are more reviews */}
             {hasMoreReviews && !showAll && (
