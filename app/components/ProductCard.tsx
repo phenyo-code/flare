@@ -31,14 +31,15 @@ export default function ProductCard({ product }: ProductCardProps) {
           <p className="font-semibold text-sm text-red-500">
             R{product.price.toFixed(2)}
           </p>
-          {product.Originalprice && (
+          {/* Only show the original price if it's different from the current price */}
+          {product.Originalprice && product.Originalprice !== product.price && (
             <p className="font-medium text-sm text-gray-400 line-through">
               R{product.Originalprice.toFixed(2)}
             </p>
           )}
         </div>
 
-        {product.Originalprice && discount > 0 && (
+        {product.Originalprice && discount > 0 && product.Originalprice !== product.price && (
           <p className="font-semibold text-sm px-2 text-red-400 mt-1 mb-2">
             {discount.toFixed(0)}% OFF FLARE WIDE
           </p>

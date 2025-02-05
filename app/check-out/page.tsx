@@ -3,7 +3,6 @@
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation"; // To access query params
 import { PlaceOrder } from "../actions/PlaceOrder"; // Importing server action
-import SearchHeader from "../components/SearchHeader";
 import CheckoutButton from "./PlaceOrderButton";
 
 export default function CheckoutPage() {
@@ -37,7 +36,7 @@ function CheckoutContent() {
 
   return (
     <div>
-      <SearchHeader />
+     
       <div className="max-w-lg mt-10 mx-auto p-6 bg-white shadow-md rounded-lg">
         <h2 className="text-2xl font-bold mb-4">Checkout</h2>
 

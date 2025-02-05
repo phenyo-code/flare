@@ -1,6 +1,7 @@
 import { Product } from "@prisma/client";
 import Image from "next/image";
 import ProductLink from "./ProductLink"; // Import the ProductLink component
+import SoldCount from "./ItemsSold";
 
 interface ProductCardProps {
   product: Product;
@@ -22,16 +23,14 @@ export default function HorintantalCard({ product }: ProductCardProps) {
           />
         </div>
 
-        <div className="flex flex-col items-center mt-2">
-          <p className="text-sm font-semibold text-red-500">
-            R{product.price.toFixed(2)}
-          </p>
-          {product.Originalprice && (
-            <p className="text-xs text-gray-400 line-through">
-              R{product.Originalprice.toFixed(2)}
+        <div className="flex flex-col ml-2 mb-2">
+          <div className="flex items-center">
+            <p className="text-sm font-semibold text-red-500 mr-1">
+              R{product.price.toFixed(2)}
             </p>
-          )}
-        </div>
+            <SoldCount productId={product.id} /> 
+          </div>
+        </div> 
       </ProductLink>
     </div>
   );

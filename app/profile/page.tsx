@@ -21,11 +21,10 @@ export default async function ProfilePage() {
   if (!user) {
     redirect("/signin");
   }
-
   return (
-    <div className="container mx-auto p-6 max-w-3xl">
-      <h1 className="text-3xl font-bold text-red-500 mb-6">Profile</h1>
-
+    <div className="container mt-6 max-w-3xl">
+      <h1 className="text-3xl font-bold mx-4 text-red-500 mb-6">{user.name}</h1>
+      <span className="w-full block bg-gray-100 h-2"></span> {/* Gray separator */}
       {/* Personal Information Section */}
       <section className="profile-section bg-white shadow-lg rounded-lg p-6 mb-6">
         <h2 className="text-2xl font-semibold text-black mb-4 flex items-center">

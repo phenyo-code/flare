@@ -124,12 +124,12 @@ function SearchContent() {
       {recentSearches.length > 0 && !query && (
         <div className="mt-14 pb-4">
           <h3 className="text-xl font-bold mt-6 mb-4">Recently Searched</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
             {recentSearches.map((search: string, index: number) => (
               <button
                 key={index}
                 onClick={() => handlePopularSearch(search)}
-                className="bg-gray-200 p-2 text-sm font-medium text-gray-500 hover:bg-gray-300 transition"
+                className="bg-gray-200 p-2 text-xs font-medium text-gray-500 hover:bg-gray-300 transition"
               >
                 {search}
               </button>
@@ -141,13 +141,13 @@ function SearchContent() {
       {/* Popular Searches Section */}
       {query === "" && (
         <div className={`mt-12 ${recentSearches.length === 0 ? "mt-14" : ""} pb-60`}>
-          <h3 className="text-xl font-bold mt-12 mb-4">Popular Searches</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          <h4 className="text-xl font-bold mt-12 mb-4">Popular Searches</h4>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
             {popularSearches.map((search) => (
               <button
                 key={search}
                 onClick={() => handlePopularSearch(search)}
-                className="bg-gray-200 p-2 text-sm font-medium text-gray-500 hover:bg-gray-300 transition"
+                className="bg-gray-200 p-2 text-xs font-medium text-gray-500 hover:bg-gray-300 transition"
               >
                 {search}
               </button>

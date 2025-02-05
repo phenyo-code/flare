@@ -8,6 +8,8 @@ import FreeDeliveryBanner from "./components/FreeDelivery";
 
 
 
+
+
 export const metadata = {
   title: "Latest Products | FLARE",
 };

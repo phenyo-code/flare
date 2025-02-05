@@ -34,7 +34,7 @@ export default async function CartPage() {
 
   return (
     <div>
-      <SearchHeader /> {/* Always visible */}
+      <SearchHeader placeholder={"Search products"} /> {/* Always visible */}
 
       {/* Show login prompt if user is not logged in */}
       {!session || !session.user ? (

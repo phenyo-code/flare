@@ -84,6 +84,23 @@ export async function PlaceOrder(formData: FormData): Promise<void> {
     data: orderItems,
   });
 
+  // Update stock levels (decrease quantity of each size purchased)
+  await Promise.all(
+    orderItems.map(async (orderItem) => {
+      await prisma.size.update({
+        where: { id: orderItem.sizeId },
+        data: {
+          quantity: {
+            decrement: orderItem.quantity, // Decrease the quantity based on the ordered quantity
+          },
+          sold: {
+            increment: orderItem.quantity, // Optionally, track the sold quantity
+          },
+        },
+      });
+    })
+  );
+
   // Calculate the total price (sum of item prices * quantity)
   const totalPrice = orderItems.reduce((total, item) => total + item.price * item.quantity, 0);
 

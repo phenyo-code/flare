@@ -9,8 +9,8 @@ import { notFound } from "next/navigation";
 import Reviews from "./Reviews";
 import ImageWrapper from "./ImageWrapper";
 import Horizontal from "@/components/Horizontal";
-import { FaTruck } from "react-icons/fa";
-
+import { FaBoxOpen, FaTruck } from "react-icons/fa";
+import PersonalizedProductList from "@/components/PersonalizedProductList";
 
 type ProductPageProps = {
   params: Promise<{ id: string }>;
@@ -49,6 +49,7 @@ export default async function ProductDetails({ params }: ProductPageProps) {
   let cart = null;
   let defaultAddress = null;
 
+  // Only check user-specific data if the user is logged in
   if (session?.user) {
     cart = await prisma.cart.findFirst({ where: { userId: session.user.id } });
 
@@ -64,24 +65,44 @@ export default async function ProductDetails({ params }: ProductPageProps) {
     });
   }
 
- // Ensure every product has a default Originalprice
- // Example condition, adjust based on your criteria
-
+  // Ensure every product has a default Originalprice
   const discount = product.Originalprice
     ? ((product.Originalprice - product.price) / product.Originalprice) * 100
     : 0;
 
-    const relatedProducts = await prisma.product.findMany({
-      where: {
-        filter: product.filter, // Assuming you want to show similar products based on the filter
-        NOT: { id: product.id }, // Exclude the current product
-      },
-      take: 5, // Limit to 5 related products (you can adjust this)
-    });
+  const relatedProducts = await prisma.product.findMany({
+    where: {
+      filter: product.filter, // Assuming you want to show similar products based on the filter
+      NOT: { id: product.id }, // Exclude the current product
+    },
+    take: 5, // Limit to 5 related products (you can adjust this)
+  });
+
+  const user = session?.user
+    ? await prisma.user.findUnique({
+        where: { email: session.user.email as string },
+      })
+    : null;
+
+  const reviews = await prisma.product.findUnique({
+    where: { id },
+    include: { reviews: true },
+  });
+
+  const products = await prisma.product.findMany({
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  const processedProducts = products.map((product) => ({
+    ...product,
+    Originalprice: product.Originalprice ?? 0, // Default to 0 if null
+  }));
 
   return (
     <div className="overflow-hidden  min-h-screen">
-      <SearchHeader />
+      <SearchHeader placeholder={product ? product.filter : "Search for products..."} />
       <div className="container bg-white mx-auto">
         <div className="flex flex-col lg:flex-row">
           {/* Image Slider Section */}
@@ -92,7 +113,7 @@ export default async function ProductDetails({ params }: ProductPageProps) {
           {/* Product Details Section */}
           <div className="w-full lg:w-1/2 lg:pl-8 mt-2">
             <h3 className="text-2xl text-red-500 mt-2 ml-4 font-bold">
-              R{product.price}
+              R{product.price} 
             </h3>
 
             <div className="flex items-center mb-2">
@@ -105,56 +126,42 @@ export default async function ProductDetails({ params }: ProductPageProps) {
             </div>
 
             {product.Originalprice && discount > 0 && (
-              <p className="font-semibold text-sm sm:text-xs px-2 text-red-500 ml-2 mb-2 uppercase">
-                Shop Now and Save {discount.toFixed(0)}% Off this {product.filter}
+              <p className="font-semibold text-xs sm:text-xs px-2 text-red-500 ml-2 uppercase">
+              {discount.toFixed(0)}% Off this {product.filter}
               </p>
             )}
 
-            
-
-            <div className="  pb-2 mt-4">
+            <div className="pb-2 mt-4">
               <Sizes productId={product.id} sizes={product.sizes} cartId={cart?.id} />
             </div>
-            
+
             <span className="w-full block bg-gray-100 h-2"></span> {/* Gray separator */}
 
-            {/* Display Default Shipping Address */}
-            {defaultAddress && (
-              
+            {/* Display Default Shipping Address if user is logged in */}
+            {session?.user && user && (
               <div className=" flex p-4 rounded-md  border-t border-gray-100">
-                <Link href="/addresses" className="block">
-                <p className="text-sm font-semibold overflow-hidden text-ellipsis whitespace-nowrap mr-6">
-                  Delivering to {defaultAddress.address}
-                </p>
-                <div className="flex items-center mt-2">
-                  <FaTruck className="text-gray-600 " />
-                <p className="text-xs text-gray-400 mx-2">Free delivery on orders over R1000</p>
+                <div className="block">
+                  <Link href="/profile">
+                    <p className="text-sm font-semibold overflow-hidden text-ellipsis whitespace-nowrap mr-6">
+                      Delivering for {user.name}
+                    </p>
+                  </Link>
+                  <div className="flex items-center mt-2">
+                    <FaTruck className="text-gray-600 " />
+                    <p className="text-xs text-gray-400 mx-2">Free delivery on orders over R1000</p>
+                  </div>
+                  <div className="flex items-center mt-2">
+                    <FaBoxOpen className="text-gray-600 " />
+                    <p className="text-xs text-gray-400 mx-2">Return Policy</p>
+                  </div>
                 </div>
-              </Link>
-
-                {/* Link to Address Page */}
               </div>
             )}
-
-<span className="w-full block bg-gray-100 h-2"></span> {/* Gray separator */}
-
-        <p className="text-sm text-gray-600 ml-4 font-medium mb-2 mt-2">Similar</p>
-         <Horizontal products={relatedProducts} /> {/* Pass products to Horizontal */}
-           
-   
-          <span className="w-full block bg-gray-100 h-2"></span> {/* Gray separator */}
- 
-
-            <div className=" border-t border-gray-100 pb-4">
-              <Reviews productId={product.id} />
-            </div>
-
-            <span className="w-full block bg-gray-100 h-2"></span> {/* Gray separator */}
 
             
 
             {!session?.user && (
-              <div className="text-center mt-10">
+              <div className="text-center mt-10 mb-8">
                 <p className="text-lg text-gray-600">
                   You need to log in to add items to the cart.
                 </p>
@@ -165,8 +172,28 @@ export default async function ProductDetails({ params }: ProductPageProps) {
                 </Link>
               </div>
             )}
+
+<span className="w-full block bg-gray-100 h-2"></span> {/* Gray separator */}
+
+            <p className="text-sm text-gray-600 ml-4 font-medium mb-2 mt-2">Similar</p>
+            <Horizontal products={relatedProducts} /> {/* Pass products to Horizontal */}
+
+            <span className="w-full block bg-gray-100 h-2"></span> {/* Gray separator */}
+
+            <div className="border-t border-gray-100 pb-4">
+              <Reviews productId={product.id} />
+            </div>
+
+            <span className="w-full block bg-gray-100 h-2"></span> {/* Gray separator */}
+
+            {/* Show login prompt if user is not logged in */}
+            
           </div>
         </div>
+      </div>
+      <div className="mt-6">
+        <p className="text-sm text-gray-600 ml-4 font-medium mb-2 mt-2">You may also like</p>
+      <PersonalizedProductList allProducts={processedProducts} />
       </div>
       <div className="mt-8">
         <Footer />

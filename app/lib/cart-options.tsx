@@ -27,19 +27,24 @@ export async function addProductToCart(cartId: string, productId: string, sizeId
     const existingCartItem = cart.items.find(
         (item) => item.productId.toString() === productObjectId.toString() && item.sizeId.toString() === sizeObjectId.toString()
     );
+
     if (existingCartItem) {
-        throw new Error("Product with this size is already in the cart");
+        // If item exists, update the quantity by incrementing
+        await prisma.cartItem.update({
+            where: { id: existingCartItem.id },
+            data: { quantity: existingCartItem.quantity + 1 },  // Increase quantity
+        });
+    } else {
+        // Create a new cart item if it doesn't exist
+        const cartItem = await prisma.cartItem.create({
+            data: {
+                cartId: cartObjectId.toString(),
+                productId: productObjectId.toString(),
+                quantity: 1, // Default quantity, can adjust as needed
+                sizeId: sizeObjectId.toString(),
+            },
+        });
     }
 
-    // Create a cart item with size
-    const cartItem = await prisma.cartItem.create({
-        data: {
-            cartId: cartObjectId.toString(), // Convert ObjectId to string for cartId
-            productId: productObjectId.toString(), // Convert ObjectId to string for productId
-            quantity: 1, // Default quantity, can adjust as needed
-            sizeId: sizeObjectId.toString(), // Include sizeId
-        },
-    });
-
-    return cartItem;
+    return { success: true };  // Return success
 }
