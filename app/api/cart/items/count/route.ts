@@ -12,12 +12,14 @@ export async function GET(req: Request) {
       return new Response(JSON.stringify({ count: 0, message: "Not logged in" }), { status: 200 });
     }
 
-    // Fetch the user's cart with items including their size information
+    // Fetch the user's cart with items including their size and measurement information
     const cart = await prisma.cart.findFirst({
       where: { userId: session.user.id }, // Get cart for the logged-in user
       include: {
         items: {
-          include: { size: true }, // Include the size of each cart item
+          include: {
+            size: true, // Include the size object for each cart item
+          },
         },
       },
     });
@@ -25,11 +27,12 @@ export async function GET(req: Request) {
     // Get the cart item count
     const count = cart?.items?.length || 0;
 
-    // Optionally include quantities in the response
+    // Optionally include quantities, sizes, and measurements in the response
     const cartItems = cart?.items.map(item => ({
       productId: item.productId,
       quantity: item.quantity,
       size: item.size.size, // Assuming 'size' is an object with the 'size' property
+      measurement: item.size.measurement, // Assuming 'measurement' is a string field on the 'size' object
     })) || [];
 
     return new Response(JSON.stringify({ count, cartItems }), { status: 200 });

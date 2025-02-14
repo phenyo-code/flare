@@ -8,17 +8,17 @@ import { useRouter } from "next/navigation";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [cartItems, setCartItems] = useState<number>(0); // Start with 0 items in cart
+  const [cartItems, setCartItems] = useState<{ productId: number; quantity: number; size: string; measurement: string }[]>([]); // Updated to handle cart items with more details
   const { data: session } = useSession();  // Fetch session data using useSession
   const router = useRouter();
 
-  // Fetch the cart item count when the component mounts
+  // Fetch the cart item details when the component mounts
   useEffect(() => {
     const fetchCartItemCount = async () => {
       try {
         if (!session?.user) {
-          setCartItems(0);
-          return; // If no user is logged in, return 0 cart items
+          setCartItems([]); // If no user is logged in, return an empty cart
+          return;
         }
 
         const response = await fetch("/api/cart/items/count", {
@@ -30,7 +30,7 @@ const Header = () => {
 
         if (response.ok) {
           const data = await response.json();
-          setCartItems(data.count); // Assuming the API returns { count: <number> }
+          setCartItems(data.cartItems); // Assuming the API returns an array of cart items with size and measurement
         } else {
           console.error("Failed to fetch cart item count");
         }
@@ -49,6 +49,9 @@ const Header = () => {
     });
   };
 
+  // Calculate the total number of cart items
+  const totalCartItems = cartItems.reduce((total, item) => total + item.quantity, 0);
+
   return (
     <div className="header w-full bg-white flex flex-col box-border">
       {/* Top Row */}
@@ -65,16 +68,16 @@ const Header = () => {
 
         {/* Icons */}
         <div className="header-icons flex items-center space-x-4">
-          <Link href="/search">
+          <Link href="/search" prefetch >
             <FiSearch className="text-gray-600 text-2xl cursor-pointer" />
           </Link>
           <div className="cart-icon relative">
-            <Link href="/cart">
+            <Link href="/cart" prefetch >
               <FiShoppingCart className="text-gray-600 text-2xl cursor-pointer" />
               {/* Show the cart item count as a very small bubble */}
-              {cartItems > 0 && (
+              {totalCartItems > 0 && (
                 <span className="absolute top-[0] right-[0] w-3.5 h-3.5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                  {cartItems}
+                  {totalCartItems}
                 </span>
               )}
             </Link>
@@ -101,35 +104,35 @@ const Header = () => {
 
         {/* Menu Links */}
         <ul className="flex flex-col m-0 p-0">
-        <Link href="/profile" className="text-gray-800">
+        <Link  href="/profile" className="text-gray-800" prefetch>
           <li className="py-4 px-6 border-b border-gray-200">
             
               Profile
             
           </li>
           </Link>
-          <Link href="/settings" className="text-gray-800">
+          <Link href="/settings" className="text-gray-800" prefetch>
           <li className="py-4 px-6 border-b border-gray-200">
             
               Settings
             
           </li>
           </Link>
-          <Link href="/wishlist" className="text-gray-800">
+          <Link href="/wishlist" className="text-gray-800" prefetch>
           <li className="py-4 px-6 border-b border-gray-200">
             
               Wishlist
             
           </li>
           </Link>
-          <Link href="/orders" className="text-gray-800">
+          <Link href="/orders" className="text-gray-800" prefetch>
           <li className="py-4 px-6 border-b border-gray-200">
             
               Orders
             
           </li>
           </Link>
-          <Link href="/help" className="text-gray-800">
+          <Link href="/help" className="text-gray-800" prefetch>
           <li className="py-4 px-6 border-b border-gray-200">
             
               Help
@@ -138,7 +141,7 @@ const Header = () => {
           </Link>
 
          
-          <Link href="/admin" className="text-gray-800">
+          <Link href="/admin" className="text-gray-800" prefetch>
             <li className="py-4 px-6 border-b border-gray-200">
               
                 Admin Dashboard
@@ -159,7 +162,7 @@ const Header = () => {
             </li>
             </a>
           ) : (
-            <Link href="/login" className="text-blue-500  font-bold">
+            <Link href="/login" className="text-blue-500  font-bold" prefetch>
             <li className="py-4 px-6 border-b border-gray-200">
               
                 Login
@@ -174,11 +177,6 @@ const Header = () => {
 };
 
 export default Header;
-
-
-
-
-
 
 
 

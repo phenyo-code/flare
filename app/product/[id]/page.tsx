@@ -11,6 +11,7 @@ import ImageWrapper from "./ImageWrapper";
 import Horizontal from "@/components/Horizontal";
 import { FaBoxOpen, FaTruck } from "react-icons/fa";
 import PersonalizedProductList from "@/components/PersonalizedProductList";
+import MatchingProducts from "@/components/MatchingProducts";
 
 type ProductPageProps = {
   params: Promise<{ id: string }>;
@@ -116,6 +117,12 @@ export default async function ProductDetails({ params }: ProductPageProps) {
               R{product.price} 
             </h3>
 
+            {product.Originalprice && discount > 0 && (
+              <p className=" border border-red-300 rounded-md max-w-max font-semibold text-xs sm:text-xs px-2 text-red-400 ml-4 mb-2 uppercase">
+              {discount.toFixed(0)}% Off this {product.filter}
+              </p>
+            )}
+
             <div className="flex items-center mb-2">
               <p className="border px-1 py-1 rounded-lg ml-4 text-transparent bg-gradient-to-br from-black to-red-500 bg-clip-text text-sm font-extrabold tracking-widest uppercase">
                 FLARE
@@ -125,11 +132,7 @@ export default async function ProductDetails({ params }: ProductPageProps) {
               </h3>
             </div>
 
-            {product.Originalprice && discount > 0 && (
-              <p className="font-semibold text-xs sm:text-xs px-2 text-red-500 ml-2 uppercase">
-              {discount.toFixed(0)}% Off this {product.filter}
-              </p>
-            )}
+            
 
             <div className="pb-2 mt-4">
               <Sizes productId={product.id} sizes={product.sizes} cartId={cart?.id} />
@@ -150,7 +153,10 @@ export default async function ProductDetails({ params }: ProductPageProps) {
                     <FaTruck className="text-gray-600 " />
                     <p className="text-xs text-gray-400 mx-2">Free delivery on orders over R1000</p>
                   </div>
-                  <div className="flex items-center mt-2">
+                  <div className=" pb-2 w-full">
+                  <p className="text-xs text-gray-500 ml-6 mt-2">3-7 business days</p>
+                  </div>
+                  <div className="flex items-center mt-2  ">
                     <FaBoxOpen className="text-gray-600 " />
                     <p className="text-xs text-gray-400 mx-2">Return Policy</p>
                   </div>
@@ -173,7 +179,7 @@ export default async function ProductDetails({ params }: ProductPageProps) {
               </div>
             )}
 
-<span className="w-full block bg-gray-100 h-2"></span> {/* Gray separator */}
+          <span className="w-full block bg-gray-100 h-2"></span> {/* Gray separator */}
 
             <p className="text-sm text-gray-600 ml-4 font-medium mb-2 mt-2">Similar</p>
             <Horizontal products={relatedProducts} /> {/* Pass products to Horizontal */}
@@ -186,14 +192,20 @@ export default async function ProductDetails({ params }: ProductPageProps) {
 
             <span className="w-full block bg-gray-100 h-2"></span> {/* Gray separator */}
 
+            <p className="text-sm text-gray-600 ml-4 font-medium mb-2 mt-2">Matching Styles</p>
+            <MatchingProducts productId={product.id} />
+            <p className="text-sm text-gray-600 ml-4 font-medium mb-2 mt-2 whitespace-nowrap overflow-hidden text-ellipsis">
+  <span className="mr-4">#Matching</span>
+  <span className="mr-4">#FLARE</span>
+  <span className="mr-4">#{product.filter}</span>
+  <span className="mr-4">#RelatedItems</span>
+</p>
+
+
             {/* Show login prompt if user is not logged in */}
             
           </div>
         </div>
-      </div>
-      <div className="mt-6">
-        <p className="text-sm text-gray-600 ml-4 font-medium mb-2 mt-2">You may also like</p>
-      <PersonalizedProductList allProducts={processedProducts} />
       </div>
       <div className="mt-8">
         <Footer />

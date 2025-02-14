@@ -13,7 +13,7 @@ function CheckoutButton({ status }: { status: string | null }) {
     <button
       type="submit"
       className={`w-full text-white p-2 rounded-md mt-4 flex justify-center items-center gap-2
-        ${clicked ? "bg-green-500 scale-90" : "bg-blue-500 hover:bg-blue-600"}
+        ${clicked ? "bg-blue-500 scale-90" : "bg-blue-500 hover:bg-blue-600"}
         transition-all duration-300`}
       disabled={status === "pending"}
       onClick={handleClick}
@@ -21,13 +21,12 @@ function CheckoutButton({ status }: { status: string | null }) {
       {clicked ? (
         <>
           <FaCheckCircle className="animate-bounce" />
-          Order Placed!
+          Placing Order....
         </>
       ) : status === "pending" ? (
         "Processing..."
       ) : (
         <>
-          <FaShoppingCart className="animate-spin" />
           Place Order
         </>
       )}

@@ -1,12 +1,10 @@
 import { prisma } from "@/lib/db/prisma";
 
-export default async function AvailableStock({ productId }: { productId: string }) {
-  const sizes = await prisma.size.findMany({
-    where: { productId },
+export default async function AvailableStock({ sizeId }: { sizeId: string }) {
+  const size = await prisma.size.findUnique({
+    where: { id: sizeId },
     select: { quantity: true },
   });
 
-  const availableStock = sizes.reduce((total, size) => total + size.quantity, 0);
-
-  return <span>Available Stock: {availableStock}</span>;
+  return <span className=" text-red-500 text-xs">{size?.quantity ?? 0} Left</span>;
 }

@@ -17,10 +17,17 @@ export async function AddReview(formData: FormData, productId: string) {
 
   const rating = Number(formData.get("rating") || 0);
   const comment = formData.get("comment")?.toString();
+  const fitFeedback = formData.get("fitFeedback")?.toString(); // Get the fit feedback
 
-  if (!rating || !comment) {
-    throw new Error("Please provide both a rating and a comment.");
+  if (!rating || !comment || !fitFeedback) {
+    throw new Error("Please provide a rating, comment, and fit feedback.");
   }
+
+  // Ensure fitFeedback is a valid enum value
+  const validFitFeedback: "SMALL" | "TRUE_TO_SIZE" | "LARGE" = 
+    ["SMALL", "TRUE_TO_SIZE", "LARGE"].includes(fitFeedback.toUpperCase()) 
+      ? fitFeedback.toUpperCase() as "SMALL" | "TRUE_TO_SIZE" | "LARGE" 
+      : "TRUE_TO_SIZE";
 
   // Create the review
   await prisma.review.create({
@@ -29,6 +36,7 @@ export async function AddReview(formData: FormData, productId: string) {
       userId, // Correct userId from the session
       rating,
       comment,
+      fitFeedback: validFitFeedback, // Ensure fitFeedback matches the enum value
     },
   });
 

@@ -1,97 +1,129 @@
-"use client"; // This marks the component as a client component
+"use client";
 
 import { useState } from "react";
+import { FaSpinner, FaStar } from "react-icons/fa";
+import { IoIosArrowUp } from "react-icons/io";
 import { AddReview as SubmitReviewAction } from "@/actions/AddReview";
 
 export function AddReview({ productId }: { productId: string }) {
-  const [showForm, setShowForm] = useState(false); // Form is initially hidden
+  const [showForm, setShowForm] = useState(false);
   const [selectedRating, setSelectedRating] = useState<number | null>(null);
   const [comment, setComment] = useState("");
-  const [reviewPosted, setReviewPosted] = useState(false); // Track if review is posted
+  const [fitFeedback, setFitFeedback] = useState<string>("");
+  const [reviewPosted, setReviewPosted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleRatingChange = (rating: number) => {
-    setSelectedRating(rating);
-  };
+  const handleRatingChange = (rating: number) => setSelectedRating(rating);
+  const handleFitFeedbackChange = (feedback: string) => setFitFeedback(feedback);
 
   const handleSubmitReview = async (event: React.FormEvent) => {
     event.preventDefault();
-
-    if (!selectedRating || !comment) {
-      alert("Please select a rating and provide a comment.");
+    if (!selectedRating || !comment || !fitFeedback) {
+      alert("Please provide a rating, comment, and fit feedback.");
       return;
     }
 
     const formData = new FormData();
     formData.append("rating", selectedRating.toString());
     formData.append("comment", comment);
+    formData.append("fitFeedback", fitFeedback);
 
     try {
-      // Submit the review
-      await SubmitReviewAction(formData, productId); // Call the server-side action
-
-      // Hide the form immediately and show the "Thank you" message
+      setIsSubmitting(true);
+      await SubmitReviewAction(formData, productId);
       setShowForm(false);
       setReviewPosted(true);
-
     } catch (error) {
       console.error("Error submitting review:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div>
-      {/* Show the "Write a Review" button if no review has been posted yet */}
+    <div className="max-w-lg mx-auto">
       {!reviewPosted && !showForm && (
         <button
-          onClick={() => setShowForm(true)} // Allow form to show when clicked
-          className=" text-red-500 mt-4 mx-4  mb-2 "
+          onClick={() => setShowForm(true)}
+          className="text-red-600 mt-4 mx-4 bg-red-300 py-3 px-4 mb-2 rounded-full"
         >
           Write a Review
         </button>
       )}
 
-      {/* Show the form if it is visible and the review has not been posted */}
       {showForm && !reviewPosted && (
-        <form onSubmit={handleSubmitReview} className="mt-8 mx-4  mb-2 ">
-          <div className="mb-4">
-            <label className="block text-lg font-medium text-center ">Rating</label>
-            <div className="flex justify-center">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <span
-                  key={star}
-                  className={`cursor-pointer text-xl ${star <= selectedRating ? 'text-yellow-500' : 'text-gray-300'}`}
-                  onClick={() => handleRatingChange(star)}
+        <form onSubmit={handleSubmitReview} className="bg-white p-6 shadow-lg rounded-lg mt-4">
+          <h2 className="text-xl font-bold text-gray-800 text-center mb-4">Rate this Product</h2>
+
+          {/* Star Rating */}
+          <div className="flex justify-center mb-4">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <FaStar
+                key={star}
+                className={`text-2xl cursor-pointer transition ${
+                  star <= selectedRating ? "text-yellow-500" : "text-gray-300"
+                }`}
+                onClick={() => handleRatingChange(star)}
+              />
+            ))}
+          </div>
+
+          {/* Comment Box */}
+          <label className="block text-sm font-medium text-gray-700 mb-1">Your Review</label>
+          <textarea
+            rows={4}
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            required
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring focus:ring-red-200"
+            placeholder="Write your review here..."
+          />
+
+          {/* Fit Feedback */}
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">How does it fit?</label>
+            <div className="flex justify-between">
+              {["true_to_size", "small", "large"].map((fit) => (
+                <label
+                  key={fit}
+                  className={`cursor-pointer px-4 py-2 rounded-full text-sm font-semibold border transition ${
+                    fitFeedback === fit ? "bg-red-300 text-red-600 " : "border-gray-300 text-gray-600"
+                  }`}
+                  onClick={() => handleFitFeedbackChange(fit)}
                 >
-                  ★
-                </span>
+                  {fit.replace("_", " ").toUpperCase()}
+                </label>
               ))}
             </div>
           </div>
 
-          <div className="mb-4">
-            <label htmlFor="comment" className="block text-lg font-medium">Comment</label>
-            <textarea
-              id="comment"
-              name="comment"
-              rows={4}
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              required
-              className="w-full p-2 border border-gray-300 rounded"
-            />
-          </div>
+          {/* Buttons */}
+          <div className="flex justify-between items-center mt-6">
+            <button
+              type="submit"
+              className="w-1/2 text-red-600 mt-4 mx-4 bg-red-300 py-3 px-4 mb-2 rounded-full hover:bg-red-300 transition flex justify-center items-center"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? <FaSpinner className="animate-spin" /> : "Submit Review"}
+            </button>
 
-          <button
-            type="submit"
-            className="bg-red-500 text-white py-2 px-6 rounded"
-          >
-            Submit Review
-          </button>
+            <button
+              type="button"
+              onClick={() => setShowForm(false)}
+              className="w-1/3 text-gray-500 py-2 px-4 text-sm flex items-center justify-center hover:text-gray-700"
+            >
+              <IoIosArrowUp className="text-lg" />
+              <span className="ml-2">Cancel</span>
+            </button>
+          </div>
         </form>
       )}
 
-      {/* Display the thank you message once the review is posted */}
-      {reviewPosted && <p className="mt-4 text-green-500">Thank you for your review!</p>}
+      {reviewPosted && (
+        <p className="mt-4 text-green-600 font-semibold text-center">
+          ✅ Thank you for your review!
+        </p>
+      )}
     </div>
   );
 }

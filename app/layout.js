@@ -3,6 +3,8 @@
 import "./globals.css"; 
 import { SessionProvider } from "next-auth/react";
 import Head from "next/head";
+import { Suspense } from "react";
+import HomeLoading from "./loading";
 
 export default function RootLayout({ children }) {
   return (
@@ -22,7 +24,9 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <SessionProvider>
+          <Suspense fallback={<HomeLoading />}>
           {children}
+          </Suspense>
         </SessionProvider>
       </body>
     </html>

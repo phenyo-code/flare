@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense } from "react";
-import { useSearchParams } from "next/navigation"; // To access query params
+import { useSearchParams } from "next/navigation";
 import { PlaceOrder } from "../actions/PlaceOrder"; // Importing server action
 import CheckoutButton from "./PlaceOrderButton";
 
@@ -20,7 +20,6 @@ function CheckoutContent() {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-
     const formData = new FormData(event.target as HTMLFormElement);
 
     // Call the PlaceOrder server action
@@ -36,14 +35,13 @@ function CheckoutContent() {
 
   return (
     <div>
-     
       <div className="max-w-lg mt-10 mx-auto p-6 bg-white shadow-md rounded-lg">
-        <h2 className="text-2xl font-bold mb-4">Checkout</h2>
+        <h2 className="text-2xl font-bold mb-4">Complete Checkout</h2>
 
         {/* Display success message */}
         {success && (
           <p className="mb-4 p-2 text-center text-white bg-green-500 rounded-md">
-            ✅ Order placed successfully!
+            Your Payment Was Succcessful !
           </p>
         )}
 
@@ -113,7 +111,6 @@ function CheckoutContent() {
           </div>
 
           <CheckoutButton status={status} />
-
         </form>
       </div>
     </div>

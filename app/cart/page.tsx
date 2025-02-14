@@ -1,133 +1,186 @@
 import { prisma } from "../lib/db/prisma";
 import Image from "next/image";
-import RemoveFromCartButton from "../product/[id]/RemoveFromCartButton";
-import SearchHeader from "../components/SearchHeader";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../api/auth/[...nextauth]/options";
-import PersonalizedProductList from "../components/PersonalizedProductList"; // Import your personalized list component
-import { Product } from "@prisma/client";
-import CartTotal from "@/components/CartTotal";
-import CheckoutButton from "./CheckOutButton";
+import SearchHeader from "../components/SearchHeader";
+import { Suspense } from "react";
+
+// Dynamically import slow components for faster initial load
+const RemoveFromCartButton = dynamic(() => import("../product/[id]/RemoveFromCartButton"));
+const CartTotal = dynamic(() => import("@/components/CartTotal"));
+const CheckoutButton = dynamic(() => import("./CheckOutButton"));
+const CartQuantityUpdater = dynamic(() => import("../components/CartQuantityUpdater"));
+const AvailableStock = dynamic(() => import("@/components/AvailableStock"));
 
 export default async function CartPage() {
-  // Get session to identify the user
   const session = await getServerSession(authOptions);
 
-  // Fetch user's cart, including size details for each cart item
-  const cart = session
-    ? await prisma.cart.findFirst({
-        where: { userId: session.user.id },
-        include: {
-          items: {
-            include: {
-              product: true,
-              size: true, // Include the size relation to get the selected size details
+  if (!session) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <p className="text-xl text-gray-700 mb-4">You need to log in to view your cart.</p>
+        <Link href="/login">
+          <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-6">
+            Login
+          </button>
+        </Link>
+      </div>
+    );
+  }
+
+  try {
+    // Fetch cart and only necessary fields
+    const cart = await prisma.cart.findFirst({
+      where: { userId: session.user.id },
+      select: {
+        id: true,
+        items: {
+          select: {
+            id: true,
+            productId: true,
+            sizeId: true,
+            quantity: true,
+            product: {
+              select: {
+                name: true,
+                price: true,
+                images: true,
+              },
+            },
+            size: {
+              select: {
+                size: true,
+              },
             },
           },
         },
-      })
-    : null;
+      },
+    });
 
-  // Fetch all products for personalized recommendations
-  const allProducts: Product[] = await prisma.product.findMany();
-
-  return (
-    <div>
-      <SearchHeader placeholder={"Search products"} /> {/* Always visible */}
-
-      {/* Show login prompt if user is not logged in */}
-      {!session || !session.user ? (
-        <div className="flex flex-col items-center justify-center min-h-screen">
-          <p className="text-xl text-gray-700 mb-4">You need to log in to view your cart.</p>
-          <Link href="/login">
-            <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-6">
-              Login
+    if (!cart || cart.items.length === 0) {
+      return (
+        <div className="text-center text-gray-500 mt-10">
+          <p>Your cart is empty.</p>
+          <Link href="/">
+            <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-6 mt-4">
+              Shop Now
             </button>
           </Link>
         </div>
-      ) : (
-        <div>
-          <div className="container mx-auto p-6">
-            <h1 className="text-3xl font-semibold mb-6">Shopping Cart</h1>
+      );
+    }
 
-            {/* Check if cart is empty */}
-            {!cart || cart.items.length === 0 ? (
-              <div className="text-center text-gray-500 mt-10">
-                <p>Your cart is empty.</p>
-                <Link href="/">
-                  <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-6 mt-4">
-                    Shop Now
-                  </button>
-                </Link>
-              </div>
-            ) : (
-              <div className="bg-white shadow-md rounded-lg p-4">
-                {/* Cart items */}
-                {cart.items.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between border-b py-4">
-                    {/* Product Image */}
-                    <div className="w-20 h-20 relative">
-                      <Image
-                        src={item.product.images[0]}
-                        alt={item.product.name}
-                        layout="fill"
-                        objectFit="cover"
-                        className="rounded-md"
-                      />
-                    </div>
+    const updatedTotalPrice = cart.items.reduce(
+      (total, item) => total + item.product.price * item.quantity,
+      0
+    );
 
-                    {/* Product Info */}
-                    <div className="flex-1 ml-3">
-                      <div className="flex items-center justify-between">
-                        {/* Product Name & Remove Button */}
-                        <p className="text-lg font-medium truncate max-w-[170px]">
-                          {item.product.name}
-                        </p>
-                        <RemoveFromCartButton cartItemId={item.id} />
-                      </div>
+    // Calculate delivery fee (simplified)
+    const deliveryFee = updatedTotalPrice < 1000 ? 100 : 0;
+    const totalWithDelivery = updatedTotalPrice + deliveryFee;
 
-                      {/* Price & Size */}
-                      <div className="flex items-center mt-1">
-                        <p className="text-red-500 font-semibold">R{item.product.price}</p>
-                        {item.size && (
-                          <span className="ml-2 bg-gray-100 text-gray-400 px-3 py-1 rounded-full text-xs">
-                            Size / {item.size.size}
-                          </span>
-                        )}
-                      </div>
+    // Ensure order is created/updated without redundant database calls
+    let order = await prisma.order.findFirst({
+      where: { userId: session.user.id, status: "PENDING" },
+      select: { id: true },
+    });
 
-                      {/* Quantity */}
-                      <p className="text-gray-500 mt-1">Quantity: {item.quantity}</p>
-                    </div>
+    if (!order) {
+      order = await prisma.order.create({
+        data: {
+          userId: session.user.id,
+          totalPrice: totalWithDelivery,
+          status: "PENDING",
+          shippingName: "",
+          shippingEmail: "",
+          shippingAddress: "",
+          items: {
+            create: cart.items.map((item) => ({
+              productId: item.productId,
+              sizeId: item.sizeId,
+              quantity: item.quantity,
+              price: item.product.price,
+            })),
+          },
+        },
+        select: { id: true },
+      });
+    }
+
+    return (
+      <div>
+        <SearchHeader placeholder="Search products" />
+        <div className="container mx-auto p-6">
+          <h1 className="text-3xl font-semibold mb-6">Shopping Cart</h1>
+
+          <div className="bg-white shadow-md rounded-lg p-4">
+            {cart.items.map((item) => (
+              <div key={item.id} className="flex items-center justify-between border-b py-4">
+                <div className="w-20 h-20 relative">
+                  <Link href={`/product/${item.productId}`}>
+                    <Image
+                      src={item.product.images[0]}
+                      alt={item.product.name}
+                      layout="fill"
+                      objectFit="cover"
+                      className="rounded-md"
+                    />
+                  </Link>
+                </div>
+
+                <div className="flex-1 ml-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-lg font-medium truncate max-w-[170px]">
+                      {item.product.name}
+                    </p>
+                    <Suspense fallback={<span>...</span>}>
+                      <RemoveFromCartButton cartItemId={item.id} />
+                    </Suspense>
                   </div>
-                ))}
+
+                  <div className="flex items-center mt-1">
+                    <p className="text-red-500 font-semibold">R{item.product.price}</p>
+                    {item.size && (
+                      <span className="ml-1 bg-gray-100 text-gray-400 px-3 py-1 rounded-full text-xs">
+                        Size / {item.size.size}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex justify-between items-center mt-0">
+                    <Suspense fallback={<span>Checking stock...</span>}>
+                      <AvailableStock sizeId={item.sizeId} />
+                    </Suspense>
+                    <Suspense fallback={<span>...</span>}>
+                      <CartQuantityUpdater
+                        cartItemId={item.id}
+                        initialQuantity={item.quantity}
+                        pricePerItem={item.product.price}
+                      />
+                    </Suspense>
+                  </div>
+                </div>
               </div>
+            ))}
+          </div>
+
+          <div className="mt-6">
+            <Suspense fallback={<p>Calculating total...</p>}>
+              <CartTotal total={totalWithDelivery} />
+            </Suspense>
+            {order && (
+              <Suspense fallback={<button className="bg-gray-500 text-white px-4 py-2">Loading...</button>}>
+                <CheckoutButton orderId={order.id} />
+              </Suspense>
             )}
-
-            {/* Total Price and Checkout Button */}
-            {cart && cart.items.length > 0 && (
-          <div className="mt-6 ">
-            <CartTotal
-              total={cart.items.reduce((total, item) => total + item.product.price * item.quantity, 0)}
-            />
-            <CheckoutButton />
-
           </div>
-        )}
-          </div>
-
-          {/* Personalized Recommendations below the checkout button */}
-          {cart && cart.items.length > 0 && (
-            <div className="mt-10 bg-slate-50 p-0">
-              <div className="container mx-auto">
-                <h3 className="text-1xl font-semibold p-6 text-center">You Might Also Like:</h3>
-                <PersonalizedProductList allProducts={allProducts} />
-              </div>
-            </div>
-          )}
         </div>
-      )}
-    </div>
-  );
+      </div>
+    );
+  } catch (error) {
+    console.error("Error fetching cart or order data", error);
+    return <p className="text-red-500 text-center mt-6">Error loading cart.</p>;
+  }
 }

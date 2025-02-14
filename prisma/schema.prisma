@@ -11,39 +11,43 @@ datasource db {
 model Product {
   id            String      @id @default(auto()) @map("_id") @db.ObjectId
   name          String
-  price         Int // The price of the product
-  Originalprice Int? // Original Price of the product
+  price         Int
+  Originalprice Int?
   category      String
   filter        String
-  images        String[] // Multiple images for the product, stored as an array of strings
-   isRecommended Boolean  @default(false)  // Add this field
-   reviews   Review[] // Add this line to reference the reviews
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  images        String[]
+  isRecommended Boolean    @default(false)
+  reviews       Review[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
   CartItem      CartItem[]
   OrderItem     OrderItem[]
+  sizes         Size[]     // One product can have multiple sizes
 
-  // Relation to Size model
-  sizes         Size[] // One product can have multiple sizes
+  style         String?    // Added style field
+  type          String?    // Added type field
+  matchesWith   String[]   // Array of strings for matching product types
 
   @@map("products")
 }
 
-// Size model to handle different sizes, sold count, and quantity
+
 model Size {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  productId String   @db.ObjectId // Foreign key to Product
-  size      String   // Size of the product, e.g., 'Small', 'Medium', 'Large'
-  sold      Int      // Number of items sold for this size
-  quantity  Int      // Total quantity available in stock for this size
-  product   Product @relation(fields: [productId], references: [id]) // Relation to Product
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  productId   String   @db.ObjectId
+  size        String   // Size of the product (e.g., 'Small', 'Medium', 'Large')
+  measurement String  @default("default_value")
+  sold        Int      // Number of items sold for this size
+  quantity    Int      // Total quantity available in stock for this size
+  product     Product  @relation(fields: [productId], references: [id])
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  CartItem CartItem[]  // Relationship with CartItem
-  OrderItem OrderItem[] // Relationship with OrderItem
+  CartItem    CartItem[]  
+  OrderItem   OrderItem[] 
 }
+
 
 
 
@@ -154,19 +158,27 @@ model Session {
   @@map("sessions")
 }
 
+enum Fit {
+  SMALL
+  TRUE_TO_SIZE
+  LARGE
+}
+
 model Review {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  productId String   @db.ObjectId
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  userId    String   @db.ObjectId
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  rating    Int      
-  comment   String   
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  productId  String   @db.ObjectId
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId     String   @db.ObjectId
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating     Int      
+  comment    String   
+  fitFeedback Fit?  // Stores whether it runs small, true to size, or large
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@map("reviews")
 }
+
 
 model ShippingAddress {
   id           String   @id @default(auto()) @map("_id") @db.ObjectId
@@ -182,4 +194,12 @@ model ShippingAddress {
 
   @@map("shipping_addresses")
   Order Order[]
+}
+
+model PasswordResetToken {
+  id        String      @id @default(auto()) @map("_id") @db.ObjectId
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 }

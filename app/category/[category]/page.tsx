@@ -2,10 +2,14 @@ import { prisma } from "../../lib/db/prisma";
 import CategoryHeader from "../../components/CategoryHeader";
 import HeroSection from "../../components/HeroSection";
 import Header from "../../components/Header";
-import ProductList from "../../components/ProductList";
+import dynamic from "next/dynamic";
 import FreeDeliveryBanner from "@/components/FreeDelivery";
+import { Suspense } from "react";
+import { Metadata } from "next";
 
-// Type for the category params
+// Dynamic import for ProductList to improve load speed
+const ProductList = dynamic(() => import("../../components/ProductList"));
+
 interface CategoryPageParams {
   category: string;
 }
@@ -38,9 +42,13 @@ export default async function CategoryPage({ params }: { params: Promise<Categor
     <div>
       <FreeDeliveryBanner />
       <Header />
-      <CategoryHeader activeCategory={category.toUpperCase()} />
+      <CategoryHeader activeCategory={category} />
       <HeroSection product={products[0]} />
-      <ProductList products={products} />
+
+      {/* Suspense for smooth loading */}
+      <Suspense fallback={<p>Loading products...</p>}>
+        <ProductList products={products} />
+      </Suspense>
     </div>
   );
 }

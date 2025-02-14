@@ -23,6 +23,15 @@ export async function addProductToCart(cartId: string, productId: string, sizeId
         throw new Error("Cart not found");
     }
 
+    // Fetch the size details (including measurement)
+    const size = await prisma.size.findUnique({
+        where: { id: sizeObjectId.toString() }, // Get size by id
+    });
+
+    if (!size) {
+        throw new Error("Size not found");
+    }
+
     // Check if the product already exists in the cart with the same size
     const existingCartItem = cart.items.find(
         (item) => item.productId.toString() === productObjectId.toString() && item.sizeId.toString() === sizeObjectId.toString()
@@ -36,12 +45,13 @@ export async function addProductToCart(cartId: string, productId: string, sizeId
         });
     } else {
         // Create a new cart item if it doesn't exist
-        const cartItem = await prisma.cartItem.create({
+        await prisma.cartItem.create({
             data: {
                 cartId: cartObjectId.toString(),
                 productId: productObjectId.toString(),
                 quantity: 1, // Default quantity, can adjust as needed
                 sizeId: sizeObjectId.toString(),
+                // Optionally include additional fields like measurement (if needed in cart item)
             },
         });
     }

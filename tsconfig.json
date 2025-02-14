@@ -37,7 +37,7 @@
     "pages/**/*.ts",  // Include pages if you're using both
     "**/*.ts",
     "**/*.tsx"
-  ],
+, "app/layout.js", "app/product/[id]/layout.js", "app/product/[id]/loading.js"  ],
   "exclude": [
     "node_modules"
   ]

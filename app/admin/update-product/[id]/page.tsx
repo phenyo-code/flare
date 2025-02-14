@@ -69,22 +69,51 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
 
         {/* Category */}
         <label className="block font-semibold">Category</label>
-        <input name="category" defaultValue={product.category} className="w-full p-2 mb-2 border border-gray-300 rounded-md" required />
+        <select name="category" defaultValue={product.category} className="w-full p-2 mb-2 border border-gray-300 rounded-md bg-white" required>
+          <option value="MEN">MEN</option>
+          <option value="WOMEN">WOMEN</option>
+          <option value="BRANDS">BRANDS</option>
+          <option value="HOME">HOME</option>
+        </select>
 
         {/* Filter */}
         <label className="block font-semibold">Filter</label>
         <input name="filter" defaultValue={product.filter} className="w-full p-2 mb-2 border border-gray-300 rounded-md" required />
 
+        {/* Style */}
+        <label className="block font-semibold">Style</label>
+        <input name="style" defaultValue={product.style} className="w-full p-2 mb-2 border border-gray-300 rounded-md" required />
+
+        {/* Type */}
+        <label className="block font-semibold">Type</label>
+        <input name="type" defaultValue={product.type} className="w-full p-2 mb-2 border border-gray-300 rounded-md" required />
+
+        {/* Matches With */}
+        <label className="block font-semibold">Matches With</label>
+        <input name="matchesWith" defaultValue={product.matchesWith?.join(", ")} placeholder="e.g., T-shirt, Jeans" className="w-full p-2 mb-2 border border-gray-300 rounded-md" />
+
         {/* Images */}
         <label className="block font-semibold">Images</label>
-        {product.images.map((image, index) => (
-          <input key={index} name={`image${index + 1}`} defaultValue={image} className="w-full p-2 mb-2 border border-gray-300 rounded-md" />
+        {[...Array(5)].map((_, index) => (
+          <input
+            key={index}
+            name={`image${index + 1}`}
+            defaultValue={product.images[index] || ""}
+            placeholder={`Image URL ${index + 1}`}
+            className="w-full p-2 mb-2 border border-gray-300 rounded-md"
+          />
         ))}
 
         {/* Sizes */}
         <label className="block font-semibold">Sizes</label>
         {product.sizes.map((size, index) => (
-          <input key={index} name="sizes" defaultValue={`${size.size}:${size.quantity}:${size.sold}`} placeholder="Size:Quantity:Sold (e.g., M:20:5)" className="w-full p-2 mb-2 border border-gray-300 rounded-md" />
+          <input
+            key={index}
+            name="sizes"
+            defaultValue={`${size.size}:${size.sold}:${size.quantity}:${size.measurement}`}
+            placeholder="Size:Sold:Quantity:Measurement (e.g., S:10:50:30cm)"
+            className="w-full p-2 mb-2 border border-gray-300 rounded-md"
+          />
         ))}
 
         {/* Submit Button */}

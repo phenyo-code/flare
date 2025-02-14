@@ -1,12 +1,19 @@
+// components/ProductCard.tsx
+
 import { Product } from "@prisma/client";
 import Image from "next/image";
 import ProductLink from "./ProductLink"; // Import the updated ProductLink component
+import ProductCardSkeleton from "./ProductCardSkeleton"; // Import Skeleton
 
 interface ProductCardProps {
-  product: Product;
+  product: Product | null; // Allow product to be null for loading state
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
+  if (!product) {
+    return <ProductCardSkeleton />; // Show skeleton if product data is not yet available
+  }
+
   const firstImage = product.images[0];
 
   const discount = product.Originalprice
@@ -15,7 +22,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   return (
     <div className="product-card shadow-md rounded-md overflow-hidden">
-      <ProductLink productId={product.id} filter={product.filter}> {/* Pass both ID and filter */}
+      <ProductLink productId={product.id} filter={product.filter}>
         <Image
           src={firstImage}
           alt={product.name}
@@ -31,7 +38,6 @@ export default function ProductCard({ product }: ProductCardProps) {
           <p className="font-semibold text-sm text-red-500">
             R{product.price.toFixed(2)}
           </p>
-          {/* Only show the original price if it's different from the current price */}
           {product.Originalprice && product.Originalprice !== product.price && (
             <p className="font-medium text-sm text-gray-400 line-through">
               R{product.Originalprice.toFixed(2)}

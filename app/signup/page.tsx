@@ -4,7 +4,7 @@
 
 import React from "react";
 import { signUp } from "@/actions/signupAction";
-import PasswordStrength from "./PasswordStrength"; // Assuming this is your existing PasswordStrength component
+import PasswordStrength from "./PasswordStrength"; 
 
 
 

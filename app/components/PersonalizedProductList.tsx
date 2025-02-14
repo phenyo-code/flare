@@ -5,6 +5,7 @@ import { getCookie } from "@/utils/cookies";
 import ProductList from "./ProductList";  // Assuming ProductList is the component that displays products
 import { Product } from "@prisma/client";
 import InteractionMessage from "@/components/InteractionMessage"; // Import the InteractionMessage component
+import ProductListSkeleton from "@/components/ProductListSkeleton"; // Import the ProductListSkeleton component
 
 interface PersonalizedProductListProps {
   allProducts: Product[]; // Assuming all products are passed from the server or are already available in the app
@@ -49,7 +50,7 @@ export default function PersonalizedProductList({ allProducts }: PersonalizedPro
   }, [allProducts]); // Dependency array ensures it reruns if allProducts change
 
   if (loading) {
-    return <div>Loading personalized products...</div>; // Show loading message
+    return <ProductListSkeleton />; // Show skeleton loading state instead of text
   }
 
   return (

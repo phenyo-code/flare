@@ -16,6 +16,16 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: "Product ID, Cart ID, and Size ID are required." }, { status: 400 });
         }
 
+        // Fetch the size details (including measurement) to ensure it's valid
+        const size = await prisma.size.findUnique({
+            where: { id: selectedSizeId },
+        });
+
+        if (!size) {
+            console.error("Size not found for ID", selectedSizeId);
+            return NextResponse.json({ message: "Invalid size ID" }, { status: 400 });
+        }
+
         // Check if the product with the same size already exists in the cart
         const existingCartItem = await prisma.cartItem.findFirst({
             where: {

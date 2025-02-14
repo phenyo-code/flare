@@ -61,10 +61,7 @@ export default function SignIn() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        
       <div className="w-full max-w-md p-8 space-y-6 bg-white rounded shadow-md">
-        
-      
         <div className="flex items-center justify-center space-x-4">
           <button
             onClick={handleGoogleSignIn}
@@ -97,7 +94,7 @@ export default function SignIn() {
           </button>
         </div>
         <p className="font-semibold text-center mb-2 text-gray-800">Your Account</p>
-        
+
         {error && <p className="text-center text-red-500">{error}</p>}
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -124,6 +121,7 @@ export default function SignIn() {
               required
             />
           </div>
+        
 
           <button
             type="submit"
@@ -134,11 +132,9 @@ export default function SignIn() {
           </button>
         </form>
 
-        
-
         <div className="mt-4 text-center">
-          <p className="text-sm">Don't have an account?</p>
-          <a href="/signup" className="text-blue-500">Sign up here</a>
+          
+          <p className="text-sm">Don't have an account? <a href="/signup" className="text-blue-500">Sign up here</a></p>
         </div>
       </div>
     </div>

@@ -20,9 +20,9 @@ export default function CategoryHeader({ activeCategory }: CategoryHeaderProps) 
             className={`category-tab flex-none text-center px-4 whitespace-nowrap text-sm sm:text-base ${
               isActive ? "text-red-500" : "text-black"
             } hover:text-red-500 transition-colors duration-200`}
-            aria-current={isActive ? "page" : undefined} // Adds accessibility for the active link
+            aria-current={isActive ? "page" : undefined} prefetch // Adds accessibility for the active link
           >
-            {category}
+            {category} 
           </Link>
         );
       })}

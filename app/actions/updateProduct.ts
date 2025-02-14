@@ -9,6 +9,12 @@ export async function updateProduct(formData: FormData): Promise<void> {
     const originalPrice = Number(formData.get("originalPrice")) || price; // Default to price if not provided
     const category = formData.get("category")?.toString();
     const filter = formData.get("filter")?.toString();
+    const style = formData.get("style")?.toString();
+    const type = formData.get("type")?.toString();
+    
+    // Get matchesWith as an array (comma-separated input)
+    const matchesWithString = formData.get("matchesWith")?.toString();
+    const matchesWith = matchesWithString ? matchesWithString.split(",").map(item => item.trim()) : [];
 
     // Get image URLs
     const images = [
@@ -29,18 +35,29 @@ export async function updateProduct(formData: FormData): Promise<void> {
     // Update product
     await prisma.product.update({
         where: { id },
-        data: { name, price, Originalprice: originalPrice, category, filter, images },
+        data: { 
+            name, 
+            price, 
+            Originalprice: originalPrice, 
+            category, 
+            filter, 
+            images,
+            style,
+            type,
+            matchesWith, // Update the matchesWith field as an array
+        },
     });
 
     // Update sizes
     await prisma.size.deleteMany({ where: { productId: id } }); // Clear existing sizes
     
     const sizes = sizesData.map((sizeData: any) => {
-        const [size, quantity, sold] = sizeData.toString().split(":"); // Expect format 'Size:Quantity:Sold'
+        const [size, sold, quantity, measurement] = sizeData.toString().split(":"); // Expect format 'Size:Sold:Quantity:Measurement'
         return {
             size,
-            quantity: Number(quantity),
             sold: Number(sold),
+            quantity: Number(quantity),
+            measurement: measurement || "default_value", // Use default if not provided
             productId: id,
         };
     });
