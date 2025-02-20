@@ -5,6 +5,7 @@ import ProductList from "./components/ProductList";
 import Footer from "./components/Footer";
 import Featured from "./components/Featured";
 import FreeDeliveryBanner from "./components/FreeDelivery";
+import InstallPrompt from "./components/InstallPrompt";
 
 
 
@@ -49,8 +50,10 @@ export default async function Home() {
         <Featured product={selectedFeaturedProduct} />
         {/* Pass all products to PersonalizedProductList */}
         {/* Display all products */}
+        <InstallPrompt />
         <ProductList products={processedProducts} />
       </div>
+      <InstallPrompt />
       <Footer />
     </div>
   );

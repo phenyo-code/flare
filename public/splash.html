@@ -1,0 +1,42 @@
+<!-- splash-screen.html -->
+<html>
+<head>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #ffffff;
+      color: #000000;
+      font-family: Arial, sans-serif;
+    }
+    .splash-content {
+      text-align: center;
+    }
+    .splash-text {
+      font-size: 84px;
+      font-weight: bold;
+      background: linear-gradient(135deg, black, red);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+  </style>
+</head>
+<body>
+  <div class="splash-content">
+    <div class="splash-logo"></div>
+    <div class="splash-text">FLARE</div>
+  </div>
+  <script>
+    // Wait for 1 second before redirecting to the main app
+    setTimeout(function() {
+      window.location.href = '/';
+    }, 2000);
+  </script>
+</body>
+</html>
