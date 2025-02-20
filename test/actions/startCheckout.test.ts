@@ -36,22 +36,19 @@ describe("startCheckout", () => {
     user: { id: "user123", email: "user@example.com" },
   };
 
-  const mockOrder = {
-    id: "order123",
-    user: { email: "user@example.com" },
-    items: [
-      {
-        product: { price: 500 },
-        quantity: 2,
-      },
-    ],
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it("should redirect to Stripe Checkout with valid order", async () => {
+  it("should redirect to Stripe Checkout with valid order (no delivery fee applied)", async () => {
+    const mockOrder = {
+      id: "order123",
+      user: { email: "user@example.com" },
+      items: [
+        { product: { price: 500 }, quantity: 2 }, // Total = 1000 (no delivery fee)
+      ],
+    };
+
     (getServerSession as jest.Mock).mockResolvedValue(mockSession);
     (prisma.order.findUnique as jest.Mock).mockResolvedValue(mockOrder);
     const mockCheckoutSession = { url: "https://checkout.stripe.com/" };
@@ -70,7 +67,43 @@ describe("startCheckout", () => {
           expect.objectContaining({
             price_data: expect.objectContaining({
               currency: "zar",
-              unit_amount: 120000, // 500 * 2 + 100 for delivery
+              unit_amount: 100000, // (500 * 2) * 100
+            }),
+          }),
+        ]),
+      })
+    );
+    expect(redirect).toHaveBeenCalledWith(mockCheckoutSession.url);
+  });
+
+  it("should redirect to Stripe Checkout with valid order (delivery fee applied)", async () => {
+    const mockOrder = {
+      id: "order123",
+      user: { email: "user@example.com" },
+      items: [
+        { product: { price: 400 }, quantity: 2 }, // Total = 800 (delivery fee applies)
+      ],
+    };
+
+    (getServerSession as jest.Mock).mockResolvedValue(mockSession);
+    (prisma.order.findUnique as jest.Mock).mockResolvedValue(mockOrder);
+    const mockCheckoutSession = { url: "https://checkout.stripe.com/" };
+    (stripe.checkout.sessions.create as jest.Mock).mockResolvedValue(mockCheckoutSession);
+
+    await startCheckout("order123");
+
+    expect(getServerSession).toHaveBeenCalled();
+    expect(prisma.order.findUnique).toHaveBeenCalledWith({
+      where: { id: "order123" },
+      include: { user: true, items: { include: { product: true } } },
+    });
+    expect(stripe.checkout.sessions.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        line_items: expect.arrayContaining([
+          expect.objectContaining({
+            price_data: expect.objectContaining({
+              currency: "zar",
+              unit_amount: 90000, // (400 * 2 + 100) * 100
             }),
           }),
         ]),
