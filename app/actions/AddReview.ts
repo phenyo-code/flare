@@ -19,15 +19,20 @@ export async function AddReview(formData: FormData, productId: string) {
   const comment = formData.get("comment")?.toString();
   const fitFeedback = formData.get("fitFeedback")?.toString(); // Get the fit feedback
 
+  // Check if all required fields are provided
   if (!rating || !comment || !fitFeedback) {
     throw new Error("Please provide a rating, comment, and fit feedback.");
   }
 
   // Ensure fitFeedback is a valid enum value
-  const validFitFeedback: "SMALL" | "TRUE_TO_SIZE" | "LARGE" = 
-    ["SMALL", "TRUE_TO_SIZE", "LARGE"].includes(fitFeedback.toUpperCase()) 
-      ? fitFeedback.toUpperCase() as "SMALL" | "TRUE_TO_SIZE" | "LARGE" 
-      : "TRUE_TO_SIZE";
+  const validFitFeedback: "SMALL" | "TRUE_TO_SIZE" | "LARGE" =
+    ["SMALL", "TRUE_TO_SIZE", "LARGE"].includes(fitFeedback.toUpperCase())
+      ? fitFeedback.toUpperCase() as "SMALL" | "TRUE_TO_SIZE" | "LARGE"
+      : null; // If invalid, set it to null
+
+  if (!validFitFeedback) {
+    throw new Error("Please provide a rating, comment, and fit feedback.");
+  }
 
   // Create the review
   await prisma.review.create({
