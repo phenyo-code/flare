@@ -1,6 +1,7 @@
 {
     "name": "FLARE",
     "short_name": "FLARE",
+    "description": "FLARE is your go-to shopping app for finding the latest trends, all in one place. Discover your style and shop now!",
     "start_url": "/splash.html",  
     "display": "standalone",
     "background_color": "#ffffff",
@@ -14,11 +15,33 @@
         "purpose": "any maskable"
       },
       {
-        "src": "/icon.png",
+        "src": "/Splash.png",
         "sizes": "512x512",
         "type": "image/png",
         "purpose": "any maskable"
       }
-    ]
+    ],
+    "screenshots": [
+      {
+        "src": "/screenshot1.png",
+        "sizes": "320x480",
+        "type": "image/png"
+      },
+      {
+        "src": "/screenshot2.png",
+        "sizes": "640x960",
+        "type": "image/png"
+      },
+      {
+        "src": "/screenshot3.png",
+        "sizes": "1024x768",
+        "type": "image/png"
+      }
+    ],
+    "developer": {
+      "name": "FLARE-SHOP",
+      "url": "https://flare-shop.vercel.app/"
+    },
+    "lang": "en-US"
   }
   
