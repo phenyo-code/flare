@@ -1,7 +1,6 @@
 import { prisma } from "./lib/db/prisma";
 import Header from "./components/Header";
 import CategoryHeader from "./components/CategoryHeader";
-import ProductList from "./components/ProductList";
 import Featured from "./components/Featured";
 import FreeDeliveryBanner from "./components/FreeDelivery";
 import InstallPrompt from "./components/InstallPrompt";
@@ -58,7 +57,6 @@ export default async function Home() {
           cartId={cart?.id}
         />
         {/* Display all products */}
-        <ProductList products={processedProducts} cartId={cart?.id} />
       </div>
       <InstallPrompt />
     </div>
