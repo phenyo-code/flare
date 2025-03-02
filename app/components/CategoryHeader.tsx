@@ -17,7 +17,7 @@ export default function CategoryHeader({ activeCategory }: CategoryHeaderProps) 
           <div key={category} className="flex flex-col items-center">
             <Link
               href={isForYou ? "/for-you" : `/category/${category}`}
-              className={`category-tab text-gray-700 text-center px-4 whitespace-nowrap text-sm sm:text-base ${
+              className={`category-tab text-gray-700 text-center px-4 pb-2 whitespace-nowrap text-sm sm:text-base ${
                 isActive ? "text-black font-bold" : "text-black"
               } hover:text-black transition-colors duration-200`}
               aria-current={isActive ? "page" : undefined}
@@ -26,7 +26,7 @@ export default function CategoryHeader({ activeCategory }: CategoryHeaderProps) 
               {category}
             </Link>
             {isActive && (
-              <div className="w-full bg-gray-700 h-[5px] mt-2" /> // Larger gap with mt-4
+              <div className="w-full bg-gray-700 h-[5px] mt-0" /> // Larger gap with mt-4
             )}
           </div>
         );
