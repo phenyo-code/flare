@@ -6,7 +6,10 @@ import FreeDeliveryBanner from "@/components/FreeDelivery";
 import ForYouHero from "@/components/ForYouHero";
 import { Suspense } from "react";
 import dynamic from "next/dynamic";
-import ForYouTypes from "../components/ForYouTypes";
+import ForYouTypes from "../components/ForYouTypes"; // Already correct
+import { getServerSession } from "next-auth";
+import { authOptions } from "../api/auth/[...nextauth]/options";
+import StandaloneHeader from "@/components/StandaloneHeader";
 
 const PersonalizedProductList = dynamic(() => import("../components/PersonalizedProductList"));
 const InteractionMessage = dynamic(() => import("../components/InteractionMessage"));
@@ -16,27 +19,40 @@ export const metadata = {
 };
 
 export default async function ForYouPage() {
-  // Fetch products (no select, full fields like CategoryPage, keep limit for performance)
   const products = await prisma.product.findMany({
     orderBy: { createdAt: "desc" },
     take: 20,
+    include: { sizes: true, reviews: true },
   });
 
-  // Extract unique filters (filter out null/undefined and use Set for uniqueness)
-  const filters = Array.from(new Set(products.map(p => p.filter).filter(f => f)));
+  const session = await getServerSession(authOptions);
+  const cart = session
+    ? await prisma.cart.findFirst({
+        where: { userId: session.user.id },
+        select: { id: true },
+      })
+    : null;
 
-  // Featured product selection
   const featuredProductName = "Streetwear Vintage Multicolor Jacket";
-  const selectedFeaturedProduct = products.find(p => p.name === featuredProductName) || products[0];
+  const selectedFeaturedProduct =
+    products.find((p) => p.name === featuredProductName) || products[0];
+
+  const filters = Array.from(new Set(products.map((p) => p.filter).filter((f) => f)));
 
   return (
     <div>
       <FreeDeliveryBanner />
+      <StandaloneHeader />
       <Header />
       <CategoryHeader activeCategory="FOR YOU" />
-      <Suspense fallback={<p>Loading personalized products...</p>}>
+      <Suspense fallback={<p>Loading personalized content...</p>}>
         {products.length > 0 ? (
-          <ForYouTypes initialProducts={products} filters={filters} featuredProduct={selectedFeaturedProduct} />
+          <ForYouTypes
+            initialProducts={products}
+            filters={filters}
+            featuredProduct={selectedFeaturedProduct}
+            cartId={cart?.id}
+          />
         ) : (
           <InteractionMessage />
         )}

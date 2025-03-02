@@ -11,11 +11,9 @@ export async function GET(req: Request) {
 
   const products = await prisma.product.findMany({
     where: {
-      name: {
-        contains: query,
-        mode: "insensitive",
-      },
+      name: { contains: query, mode: "insensitive" },
     },
+    include: { sizes: true },
   });
 
   return NextResponse.json(products);

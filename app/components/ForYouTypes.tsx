@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import ProductList from "./ProductList";
+import PersonalizedProductList from "./PersonalizedProductList";
+import ForYouHero from "./ForYouHero";
 import { Suspense } from "react";
 
 interface ProductWithSizes {
@@ -22,14 +23,19 @@ interface ProductWithSizes {
   matchesWith: string[];
 }
 
-interface CategoryTypesProps {
+interface ForYouTypesProps {
   initialProducts: ProductWithSizes[];
   filters: string[];
-  category: string;
+  featuredProduct: ProductWithSizes;
   cartId?: string;
 }
 
-export default function CategoryTypes({ initialProducts, filters, category, cartId }: CategoryTypesProps) {
+export default function ForYouTypes({
+  initialProducts,
+  filters,
+  featuredProduct,
+  cartId,
+}: ForYouTypesProps) {
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
 
   const filteredProducts = selectedFilter
@@ -38,16 +44,18 @@ export default function CategoryTypes({ initialProducts, filters, category, cart
 
   return (
     <div>
+      <ForYouHero product={featuredProduct} />
+
       {/* Now Trending Heading */}
-      <h2 className="text-xl ml-4 sm:text-2xl font-bold my-4 uppercase tracking-wide">
-        Now Trending
+      <h2 className="text-xl ml-4 sm:text-2xl font-extrabold my-4 uppercase tracking-wide">
+        Trending Picks
       </h2>
 
       {/* Filter Row */}
-      <div className="filter-row uppercase flex font-bold shadow-md mb-0 items-center py-2 px-4 overflow-x-auto space-x-2">
+      <div className="filter-row header-categories-row uppercase flex font-bold shadow-md mb-0 items-center pb-2 px-4 overflow-x-auto space-x-2">
         <button
           className={`filter-tab flex-none text-center px-4 py-2 rounded-full border border-gray-300 whitespace-nowrap text-sm sm:text-base ${
-            !selectedFilter ? "text-red-500  border-red-500" : "text-black bg-transparent"
+            !selectedFilter ? "text-red-500 border-red-500" : "text-black bg-transparent"
           } hover:text-red-500 transition-colors duration-200`}
           onClick={() => setSelectedFilter(null)}
         >
@@ -66,8 +74,8 @@ export default function CategoryTypes({ initialProducts, filters, category, cart
         ))}
       </div>
 
-      <Suspense fallback={<p>Loading products...</p>}>
-        <ProductList products={filteredProducts} cartId={cartId} />
+      <Suspense fallback={<p>Loading personalized products...</p>}>
+        <PersonalizedProductList allProducts={filteredProducts} cartId={cartId} />
       </Suspense>
     </div>
   );

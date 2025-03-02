@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback } from "react";
-import { storeProductView } from "@/utils/cookies"; // Assuming this function exists
+import { storeProductView } from "@/utils/cookies";
 
 interface ProductLinkProps {
   productId: string;

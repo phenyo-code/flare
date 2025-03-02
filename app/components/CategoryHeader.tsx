@@ -8,26 +8,29 @@ interface CategoryHeaderProps {
 
 export default function CategoryHeader({ activeCategory }: CategoryHeaderProps) {
   return (
-    <div className="header-categories-row uppercase flex font-bold border-b mb-0 items-center py-2 pb-2 px-4 overflow-x-auto lg:justify-between">
+    <div className="header-categories-row uppercase flex font-bold mb-0 items-start pt-2 px-2 overflow-x-auto lg:justify-between">
       {categories.map((category) => {
-        const isActive = category.toUpperCase() === activeCategory.toUpperCase(); // Ensure case-insensitive comparison
-        const isForYou = category === "FOR YOU"; // Special handling for "FOR YOU"
+        const isActive = category.toUpperCase() === activeCategory.toUpperCase();
+        const isForYou = category === "FOR YOU";
 
         return (
-          <Link
-            key={category}
-            href={isForYou ? "/for-you" : `/category/${category}`} // Redirect "FOR YOU" to its own page
-            className={`category-tab flex-none text-center px-4 whitespace-nowrap text-sm sm:text-base ${
-              isActive ? "text-red-500" : "text-black"
-            } hover:text-red-500 transition-colors duration-200`}
-            aria-current={isActive ? "page" : undefined} prefetch // Adds accessibility for the active link
-          >
-            {category} 
-          </Link>
+          <div key={category} className="flex flex-col items-center">
+            <Link
+              href={isForYou ? "/for-you" : `/category/${category}`}
+              className={`category-tab text-gray-700 text-center px-4 whitespace-nowrap text-sm sm:text-base ${
+                isActive ? "text-black font-bold" : "text-black"
+              } hover:text-black transition-colors duration-200`}
+              aria-current={isActive ? "page" : undefined}
+              prefetch
+            >
+              {category}
+            </Link>
+            {isActive && (
+              <div className="w-full bg-gray-700 h-[5px] mt-2" /> // Larger gap with mt-4
+            )}
+          </div>
         );
       })}
     </div>
   );
 }
-
-

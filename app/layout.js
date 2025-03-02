@@ -6,7 +6,6 @@ import Head from "next/head";
 import { Suspense } from "react";
 import HomeLoading from "./loading";
 import OfflineNotification from './components/OfflineNotification';
-import BottomNavWrapper from "@/components/BottomNavWrapper";
 
 export default function RootLayout({ children }) {
   return (
