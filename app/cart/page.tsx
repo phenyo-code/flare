@@ -11,7 +11,7 @@ import BottomNavWrapper from "@/components/BottomNavWrapper";
 const RemoveFromCartButton = dynamic(() => import("../product/[id]/RemoveFromCartButton"));
 const CartTotal = dynamic(() => import("@/components/CartTotal"));
 const CheckoutButton = dynamic(() => import("./CheckOutButton"));
-const CartQuantityUpdater = dynamic(() => import("../components/CartQuantityUpdater"));
+const CartQuantityUpdater = dynamic(() => import("./CartQuantityUpdater"));
 const AvailableStock = dynamic(() => import("@/components/AvailableStock"));
 
 export default async function CartPage() {
