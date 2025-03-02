@@ -1,8 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# FLARE
 
-## Getting Started
+This is a full-stack e-commerce PWA (Progressive Web App) built with Next.js 15, MongoDB, and Stripe. The application provides a seamless shopping experience, including product browsing, cart management, and secure checkout with Stripe.
 
-First, run the development server:
+
+## Features
+
+### Product Browsing:
+View detailed product pages with descriptions, images, and pricing.
+
+### Real-Time Cart Updates: 
+Add and modify products in your cart, with automatic updates.
+
+### Stripe Payment Integration: 
+Secure checkout with Stripe for payments.
+
+### Admin Panel: 
+Admins can manage products, orders, and inventory.
+
+### Complementary Product Suggestions: 
+Display products related to the one being viewed based on category matching.
+
+### User Authentication: 
+Integrated login and authentication with NextAuth.js.
+
+### Order Management: 
+Manage customer orders and track their status.
+
+## Technologies Used
+
+### Frontend: 
+Next.js, Tailwind CSS
+
+### Backend: 
+Node.js, Prisma ORM
+
+### Database: 
+MongoDB (via Prisma)
+
+### Payment Gateway: 
+Stripe (via Stripe Elements)
+
+### Authentication: 
+NextAuth.js
+
+### Testing: 
+Jest, React Testing Library
+
+# Getting Started
+
+Install dependencies:
+
+```bash
+npm install
+# or
+yarn install
+```
+
+
+Run the development server:
 
 ```bash
 npm run dev
@@ -14,23 +69,53 @@ pnpm dev
 bun dev
 ```
 
+For testing the stripe checkOut run on a secure http
+
+```bash
+node server.js
+```
+
+
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Learn More
+Set up the environment variables by creating a .env file at the root of the project:  (.env.local  and   .env.production )
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+GOOGLE_ID=your-googleID
+GOOGLE_SECRET=yourGoogle-Secret
+NODE_ENV=
+COOKIE_SECRET=your-cookie-secret
+DATABASE_URL="your-mongodb-connection-string"
+NEXTAUTH_SECRET=your-nextAuth-secret
+NEXT_PUBLIC_APP_URL=https://localhost:3000 
+STRIPE_SECRET_KEY=uour-stripe-scret-key
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your-public-stripe-key
+NEXT_PUBLIC_BASE_URL=https://localhost:3000  # or your production base URL
+BASE_URL=http://localhost:3000
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Testing
 
-## Deploy on Vercel
+```bash
+npm test
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Or test individual server action as follows
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npx jest test/actions/addProduct.test.ts
+```
+
+
+## Acknowledgements
+
+Next.js
+Prisma
+Stripe
+NextAuth.js
+
+
