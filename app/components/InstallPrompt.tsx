@@ -70,18 +70,14 @@ const InstallPrompt = () => {
       )}
 
       {showiOSPrompt && (
-        <div className="fixed bottom-5 left-1/2 transform -translate-x-1/2 py-3 px-6 bg-yellow-400 text-black text-center rounded-md shadow-lg">
-          <p>
-            Install this app: Tap <strong>Share</strong> and then <strong>Add to Home Screen</strong>.
-          </p>
+        <div>
+
         </div>
       )}
 
       {showWindowsPrompt && (
-        <div className="fixed bottom-5 left-1/2 transform -translate-x-1/2 py-3 px-6 bg-yellow-400 text-black text-center rounded-md shadow-lg">
-          <p>
-            Install this app: Click the <strong>Install</strong> button in the browser menu.
-          </p>
+        <div>
+
         </div>
       )}
     </>

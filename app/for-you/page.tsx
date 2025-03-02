@@ -6,8 +6,8 @@ import FreeDeliveryBanner from "@/components/FreeDelivery";
 import ForYouHero from "@/components/ForYouHero";
 import { Suspense } from "react";
 import dynamic from "next/dynamic";
+import ForYouTypes from "../components/ForYouTypes";
 
-// Dynamically import components (but no `ssr: false`)
 const PersonalizedProductList = dynamic(() => import("../components/PersonalizedProductList"));
 const InteractionMessage = dynamic(() => import("../components/InteractionMessage"));
 
@@ -16,26 +16,14 @@ export const metadata = {
 };
 
 export default async function ForYouPage() {
-  // Fetch products (limit to 20 for better performance)
+  // Fetch products (no select, full fields like CategoryPage, keep limit for performance)
   const products = await prisma.product.findMany({
-    select: {
-      id: true,
-      name: true,
-      price: true,
-      Originalprice: true,
-      category: true,
-      filter: true,
-      images: true,
-      isRecommended: true,
-      createdAt: true,
-      updatedAt: true,
-      style: true,
-      type: true,
-      matchesWith: true,
-    },
     orderBy: { createdAt: "desc" },
-    take: 20, // Fetch only 20 products for performance
+    take: 20,
   });
+
+  // Extract unique filters (filter out null/undefined and use Set for uniqueness)
+  const filters = Array.from(new Set(products.map(p => p.filter).filter(f => f)));
 
   // Featured product selection
   const featuredProductName = "Streetwear Vintage Multicolor Jacket";
@@ -46,18 +34,13 @@ export default async function ForYouPage() {
       <FreeDeliveryBanner />
       <Header />
       <CategoryHeader activeCategory="FOR YOU" />
-
-      <ForYouHero product={selectedFeaturedProduct} />
-
-      {/* Wrap dynamic components inside Suspense */}
       <Suspense fallback={<p>Loading personalized products...</p>}>
         {products.length > 0 ? (
-          <PersonalizedProductList allProducts={products} />
+          <ForYouTypes initialProducts={products} filters={filters} featuredProduct={selectedFeaturedProduct} />
         ) : (
           <InteractionMessage />
         )}
       </Suspense>
-
       <Footer />
     </div>
   );

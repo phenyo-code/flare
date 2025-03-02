@@ -7,6 +7,7 @@ import { Product } from "@prisma/client";
 import { FiSearch } from "react-icons/fi";
 import { IoIosArrowBack } from "react-icons/io";
 import { storeUserSearch, getCookie } from "../utils/cookies"; // Import getCookie
+import BottomNavWrapper from "@/components/BottomNavWrapper";
 
 export default function SearchPage() {
   return (
@@ -53,7 +54,7 @@ function SearchContent() {
     } else {
       setInitialLoad(false);
     }
-  }, [debouncedQuery]); // Trigger when `debouncedQuery` changes
+  }, [debouncedQuery, initialLoad]); // Trigger when `debouncedQuery` or `initialLoad` changes
 
   // Effect to store user search after user scrolls
   useEffect(() => {
@@ -161,9 +162,10 @@ function SearchContent() {
         <div className="mt-14">
           <h3 className="text-xl font-bold mt-6 mb-6">Search Results</h3>
           {loading && <p>Loading...</p>}
-          <ProductList products={products} />
+          <ProductList products={products}  />
         </div>
       )}
+              <BottomNavWrapper cartItems={[]} />
     </div>
   );
 }

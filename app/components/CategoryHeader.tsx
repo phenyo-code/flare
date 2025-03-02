@@ -8,7 +8,7 @@ interface CategoryHeaderProps {
 
 export default function CategoryHeader({ activeCategory }: CategoryHeaderProps) {
   return (
-    <div className="header-categories-row uppercase flex font-bold shadow-md mb-0 items-center py-2 pb-2 px-4 overflow-x-auto lg:justify-between">
+    <div className="header-categories-row uppercase flex font-bold border-b mb-0 items-center py-2 pb-2 px-4 overflow-x-auto lg:justify-between">
       {categories.map((category) => {
         const isActive = category.toUpperCase() === activeCategory.toUpperCase(); // Ensure case-insensitive comparison
         const isForYou = category === "FOR YOU"; // Special handling for "FOR YOU"

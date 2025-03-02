@@ -6,8 +6,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../api/auth/[...nextauth]/options";
 import SearchHeader from "../components/SearchHeader";
 import { Suspense } from "react";
+import BottomNavWrapper from "@/components/BottomNavWrapper";
 
-// Dynamically import slow components for faster initial load
 const RemoveFromCartButton = dynamic(() => import("../product/[id]/RemoveFromCartButton"));
 const CartTotal = dynamic(() => import("@/components/CartTotal"));
 const CheckoutButton = dynamic(() => import("./CheckOutButton"));
@@ -26,12 +26,12 @@ export default async function CartPage() {
             Login
           </button>
         </Link>
+        <BottomNavWrapper cartItems={[]} />
       </div>
     );
   }
 
   try {
-    // Fetch cart and only necessary fields
     const cart = await prisma.cart.findFirst({
       where: { userId: session.user.id },
       select: {
@@ -68,6 +68,7 @@ export default async function CartPage() {
               Shop Now
             </button>
           </Link>
+          <BottomNavWrapper cartItems={[]} />
         </div>
       );
     }
@@ -77,11 +78,9 @@ export default async function CartPage() {
       0
     );
 
-    // Calculate delivery fee (simplified)
     const deliveryFee = updatedTotalPrice < 1000 ? 100 : 0;
     const totalWithDelivery = updatedTotalPrice + deliveryFee;
 
-    // Ensure order is created/updated without redundant database calls
     let order = await prisma.order.findFirst({
       where: { userId: session.user.id, status: "PENDING" },
       select: { id: true },
@@ -177,10 +176,16 @@ export default async function CartPage() {
             )}
           </div>
         </div>
+        <BottomNavWrapper cartItems={cart.items} />
       </div>
     );
   } catch (error) {
     console.error("Error fetching cart or order data", error);
-    return <p className="text-red-500 text-center mt-6">Error loading cart.</p>;
+    return (
+      <div>
+        <p className="text-red-500 text-center mt-6">Error loading cart.</p>
+        <BottomNavWrapper cartItems={[]} />
+      </div>
+    );
   }
 }

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db/prisma";
 import { redirect } from "next/navigation";
 import { FaUser, FaEnvelope, FaLock, FaCamera } from "react-icons/fa";
 import Link from "next/link";  // Import Link from next
+import BottomNavWrapper from "@/components/BottomNavWrapper";
 
 // Fetch the user data from the database
 export default async function ProfilePage() {
@@ -11,7 +12,7 @@ export default async function ProfilePage() {
 
   if (!session?.user) {
     // If no user is found, redirect to login page
-    redirect("/signin");
+    redirect("/login");
   }
 
   const user = await prisma.user.findUnique({
@@ -19,7 +20,7 @@ export default async function ProfilePage() {
   });
 
   if (!user) {
-    redirect("/signin");
+    redirect("/login");
   }
   return (
     <div className="container mt-6 max-w-3xl">
@@ -112,6 +113,7 @@ export default async function ProfilePage() {
           Save Changes
         </button>
       </div>
+      <BottomNavWrapper cartItems={[]} />
     </div>
   );
 }
