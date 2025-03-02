@@ -19,6 +19,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
+    // Debugging: Log the total price to verify it is correct
+    console.log("Order Total Price:", order.totalPrice);
+
+    const unitAmount = Math.round(order.totalPrice * 100); // Ensure it's in cents
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       mode: "payment",
@@ -29,16 +34,16 @@ export async function POST(req: Request) {
       line_items: [
         {
           price_data: {
-            currency: "zar",
+            currency: "zar",  // ZAR is South African Rand
             product_data: { name: "Your Order" },
-            unit_amount: order.totalPrice * 100,
+            unit_amount: unitAmount, // In cents
           },
           quantity: 1,
         },
       ],
     });
 
-    return NextResponse.json({ clientSecret: session.id }); // Correct response
+    return NextResponse.json({ clientSecret: session.id });
   } catch (error) {
     console.error("Stripe Error:", error);
     return NextResponse.json({ error: "Failed to create payment intent" }, { status: 500 });

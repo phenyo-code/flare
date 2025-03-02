@@ -90,6 +90,7 @@ model Order {
   totalPrice        Int
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
+  stripeSessionId String?
   items             OrderItem[]
 
   // Added field to reference the shipping address

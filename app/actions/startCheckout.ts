@@ -5,36 +5,55 @@ import { prisma } from "@/lib/db/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/api/auth/[...nextauth]/options";
 import { redirect } from "next/navigation";
+import { ObjectId } from "mongodb";
 
 export async function startCheckout(orderId: string) {
   const session = await getServerSession(authOptions);
   if (!session || !session.user) throw new Error("You must be logged in.");
 
-  // Get the order from the database
+  console.log("Received orderId:", orderId, "Type:", typeof orderId);
+
+  if (!orderId || typeof orderId !== "string") {
+    console.error("Invalid orderId: orderId is missing or not a string", { orderId });
+    throw new Error("Invalid orderId: Must provide a valid string.");
+  }
+
+  const trimmedOrderId = orderId.trim();
+  if (!ObjectId.isValid(trimmedOrderId)) {
+    console.error("Invalid orderId format:", trimmedOrderId);
+    throw new Error("Invalid orderId format.");
+  }
+
+  const orderObjectId = new ObjectId(trimmedOrderId);
+
   const order = await prisma.order.findUnique({
-    where: { id: orderId },
-    include: { 
-      user: true, 
-      items: { 
-        include: { 
-          product: true 
-        } 
-      } 
+    where: { id: orderObjectId.toString() },
+    include: {
+      user: true,
+      items: { include: { product: true } },
     },
   });
 
-  if (!order) throw new Error("Order not found.");
+  if (!order) {
+    console.error("Order not found for orderId:", trimmedOrderId);
+    throw new Error("Order not found.");
+  }
 
-  // Recalculate the total price based on the current cart items
-  let updatedTotalPrice = order.items.reduce((total, item) => {
-    return total + (item.product.price * item.quantity); // Calculate total price dynamically
-  }, 0);
+  // Recalculate total price from order items (should match cart from CartPage)
+  let updatedTotalPrice = order.items.reduce(
+    (total, item) => total + item.product.price * item.quantity,
+    0
+  );
+  const deliveryFee = updatedTotalPrice < 1000 ? 100 : 0;
+  const finalPrice = updatedTotalPrice + deliveryFee;
 
-  // Add the delivery fee (R100 if the total is less than R1000)
-  const deliveryFee = updatedTotalPrice < 1000 ? 100 : 0;  // Adjusted to R100
-  const finalPrice = updatedTotalPrice + deliveryFee;  // Include delivery fee
+  // Update the order with the recalculated total price
+  await prisma.order.update({
+    where: { id: orderObjectId.toString() },
+    data: { totalPrice: finalPrice },
+  });
 
-  // Create a Stripe Checkout session with the updated total price (including delivery fee)
+  // Create Stripe Checkout session with updated total
   const checkoutSession = await stripe.checkout.sessions.create({
     payment_method_types: ["card"],
     mode: "payment",
@@ -47,13 +66,12 @@ export async function startCheckout(orderId: string) {
         price_data: {
           currency: "zar",
           product_data: { name: "Your Order" },
-          unit_amount: finalPrice * 100, // Send the total including the delivery fee
+          unit_amount: finalPrice * 100,
         },
         quantity: 1,
       },
     ],
   });
 
-  // Redirect user to Stripe payment page
   redirect(checkoutSession.url!);
 }

@@ -73,20 +73,50 @@ export default async function CartPage() {
       );
     }
 
+    // Recalculate total price from cart items
     const updatedTotalPrice = cart.items.reduce(
       (total, item) => total + item.product.price * item.quantity,
       0
     );
-
     const deliveryFee = updatedTotalPrice < 1000 ? 100 : 0;
     const totalWithDelivery = updatedTotalPrice + deliveryFee;
 
+    // Fetch or create/update the order
     let order = await prisma.order.findFirst({
       where: { userId: session.user.id, status: "PENDING" },
-      select: { id: true },
+      include: { items: true }, // Include items to compare
     });
 
-    if (!order) {
+    if (order) {
+      // Compare cart items with order items and update if necessary
+      const cartItemsMap = new Map(cart.items.map(item => [item.id, item]));
+      const orderItemsMap = new Map(order.items.map(item => [item.id, item]));
+
+      const itemsNeedUpdate = cart.items.some(cartItem => {
+        const orderItem = orderItemsMap.get(cartItem.id);
+        return !orderItem || orderItem.quantity !== cartItem.quantity || orderItem.price !== cartItem.product.price;
+      });
+
+      if (itemsNeedUpdate || order.totalPrice !== totalWithDelivery) {
+        // Update order items and total price
+        await prisma.order.update({
+          where: { id: order.id },
+          data: {
+            totalPrice: totalWithDelivery,
+            items: {
+              deleteMany: {}, // Clear existing items
+              create: cart.items.map((item) => ({
+                productId: item.productId,
+                sizeId: item.sizeId,
+                quantity: item.quantity,
+                price: item.product.price,
+              })),
+            },
+          },
+        });
+      }
+    } else {
+      // Create new order if none exists
       order = await prisma.order.create({
         data: {
           userId: session.user.id,
@@ -104,7 +134,21 @@ export default async function CartPage() {
             })),
           },
         },
-        select: { id: true },
+        select: {
+          id: true,
+          createdAt: true,
+          updatedAt: true,
+          userId: true,
+          shippingAddress: true,
+          shippingName: true,
+          shippingEmail: true,
+          shippingPhoneNumber: true,
+          status: true,
+          totalPrice: true,
+          stripeSessionId: true,
+          shippingAddressId: true,
+          items: true,
+        },
       });
     }
 
