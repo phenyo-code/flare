@@ -6,6 +6,7 @@ import Head from "next/head";
 import { Suspense } from "react";
 import HomeLoading from "./loading";
 import OfflineNotification from './components/OfflineNotification';
+import Footer from "./components/Footer";
 
 export default function RootLayout({ children }) {
   return (
@@ -36,6 +37,7 @@ export default function RootLayout({ children }) {
           {children}
           </Suspense>
         </SessionProvider>
+        <Footer />
 
       </body>
     </html>

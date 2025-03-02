@@ -2,22 +2,22 @@ import { prisma } from "./lib/db/prisma";
 import Header from "./components/Header";
 import CategoryHeader from "./components/CategoryHeader";
 import ProductList from "./components/ProductList";
-import Footer from "./components/Footer";
 import Featured from "./components/Featured";
 import FreeDeliveryBanner from "./components/FreeDelivery";
 import InstallPrompt from "./components/InstallPrompt";
 import { getServerSession } from "next-auth";
 import { authOptions } from "./api/auth/[...nextauth]/options";
 import StandaloneHeader from "./components/StandaloneHeader";
+import CategoryTypes from "./components/CategoryTypes";
 
 export const metadata = {
-  title: "Latest Products | FLARE",
+  title: "Discover All Latest Products | FLARE",
 };
 
 export default async function Home() {
   const products = await prisma.product.findMany({
     orderBy: { createdAt: "desc" },
-    include: { sizes: true },
+    include: { sizes: true, reviews: true },
   });
 
   const session = await getServerSession(authOptions);
@@ -27,6 +27,10 @@ export default async function Home() {
         select: { id: true },
       })
     : null;
+
+  const filters = Array.from(
+    new Set(products.map((p) => p.filter).filter(Boolean))
+  );
 
   const featuredProductName = "Vintage Multicolor Jacket Streetwear - FLARE Good";
   const featuredProduct = products.find((product) => product.name === featuredProductName);
@@ -42,14 +46,21 @@ export default async function Home() {
       <FreeDeliveryBanner />
       <StandaloneHeader />
       <Header />
-      <CategoryHeader activeCategory={""} />
+      <CategoryHeader activeCategory="ALL" />
       <div>
         <Featured product={selectedFeaturedProduct} />
         <InstallPrompt />
+        {/* Category filtering support */}
+        <CategoryTypes
+          initialProducts={processedProducts}
+          filters={filters}
+          category="ALL"
+          cartId={cart?.id}
+        />
+        {/* Display all products */}
         <ProductList products={processedProducts} cartId={cart?.id} />
       </div>
       <InstallPrompt />
-      <Footer />
     </div>
   );
 }

@@ -39,7 +39,7 @@ export default function AddProductPage() {
             <option value="MEN">MEN</option>
             <option value="WOMEN">WOMEN</option>
             <option value="BRANDS">BRANDS</option>
-            <option value="HOME">HOME</option>
+            <option value="HOME">ACCESSORIES</option>
           </select>
 
           <input name="filter" placeholder="Filter" className="w-full p-2 mb-2 border border-gray-300 rounded-md" required />
@@ -64,7 +64,7 @@ export default function AddProductPage() {
 
           {/* Sizes Input */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Product Sizes (e.g., "Small:10:50:cm")</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Product Sizes (e.g.,&quot;Small:10:50:Measurement_cm&quot;)</label>
 
             {[...Array(4)].map((_, index) => (
               <input key={index} name="sizes" placeholder="Size:Sold:Quantity:Measurement (e.g., S:10:50:cm)" className="w-2/3 p-2 border border-gray-300 rounded-md" />
