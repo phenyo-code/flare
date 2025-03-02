@@ -6,8 +6,8 @@ import { BiSolidCoupon } from "react-icons/bi";
 
 const messages = [
   { text: "Free deliveries for orders over R1000", icon: <FaTruck className="text-gray-400 text-lg" /> },
-  { text: "-5% off on orders over R1000", icon: <FaTags className="text-gray-400 text-lg" /> },
-  { text: "-10% off on orders over R2000", icon: <FaGift className="text-gray-400 text-lg" /> },
+  { text: "-5% off on orders over R2000", icon: <FaTags className="text-gray-400 text-lg" /> },
+  { text: "-10% off on orders over R2500", icon: <FaGift className="text-gray-400 text-lg" /> },
   { text: "-15% off on orders over R3000", icon: <FaTags className="text-gray-400 text-lg" /> },
   { text: "Fast shipping and delivery", icon: <FaClock className="text-gray-400 text-lg" /> },
   { text: "Secure payments with all major cards", icon: <FaCreditCard className="text-gray-400 text-lg" /> },

@@ -39,11 +39,25 @@ export async function startCheckout(orderId: string) {
     throw new Error("Order not found.");
   }
 
-  // Recalculate total price from order items (should match cart from CartPage)
+  // Recalculate total price from order items
   let updatedTotalPrice = order.items.reduce(
     (total, item) => total + item.product.price * item.quantity,
     0
   );
+
+  // Apply discounts based on total price
+  let discountPercentage = 0;
+  if (updatedTotalPrice >= 3000) {
+    discountPercentage = 15;
+  } else if (updatedTotalPrice >= 2500) {
+    discountPercentage = 10;
+  } else if (updatedTotalPrice >= 2000) {
+    discountPercentage = 5;
+  }
+
+  const discountAmount = (updatedTotalPrice * discountPercentage) / 100;
+  updatedTotalPrice -= discountAmount; // Apply discount
+
   const deliveryFee = updatedTotalPrice < 1000 ? 100 : 0;
   const finalPrice = updatedTotalPrice + deliveryFee;
 
@@ -65,8 +79,11 @@ export async function startCheckout(orderId: string) {
       {
         price_data: {
           currency: "zar",
-          product_data: { name: "Your Order" },
-          unit_amount: finalPrice * 100,
+          product_data: { 
+            name: "Your Order",
+            description: discountAmount > 0 ? `Saved: R${discountAmount.toFixed(2)}` : undefined,
+          },
+          unit_amount: Math.round(finalPrice * 100), // Ensure it's an integer for Stripe
         },
         quantity: 1,
       },

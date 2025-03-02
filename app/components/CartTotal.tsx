@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { FaTruck } from "react-icons/fa";
+import { FaTruck, FaGift, FaTags } from "react-icons/fa";
 import { useCartStore } from "../store/cartStore";
 
 interface CartTotalProps {
@@ -10,39 +10,63 @@ interface CartTotalProps {
 
 export default function CartTotal({ total }: CartTotalProps) {
   const [finalTotal, setFinalTotal] = useState(total);
-  const isUpdating = useCartStore((state) => state.isUpdating());
-  const deliveryFee = 100; // Updated to R100
+  const [discount, setDiscount] = useState(0);
+  const { cartItems, isUpdating } = useCartStore();
+  const deliveryFee = 100;
   const freeDeliveryThreshold = 1000;
 
   useEffect(() => {
-    if (!isUpdating) {
-      // If not updating, set finalTotal directly to total
-      setFinalTotal(total);
+    let newTotal = total;
+    let discountPercentage = 0;
+
+    // Apply discounts based on total price
+    if (total >= 3000) {
+      discountPercentage = 15;
+    } else if (total >= 2500) {
+      discountPercentage = 10;
+    } else if (total >= 2000) {
+      discountPercentage = 5;
+    }
+
+    if (discountPercentage > 0) {
+      const discountAmount = (total * discountPercentage) / 100;
+      newTotal -= discountAmount;
+      setDiscount(discountAmount);
+    } else {
+      setDiscount(0);
+    }
+
+    if (!isUpdating()) {
+      setFinalTotal(newTotal);
       return;
     }
 
-    // When updating, animate the transition
+    // Real-time total update during cart updates
+    const realTimeTotal = cartItems.reduce(
+      (sum, item) => sum + item.pricePerItem * item.quantity,
+      0
+    );
+
     const startValue = finalTotal;
-    const endValue = total;
-    const duration = 800; // Animation duration in ms (1 second)
-    const steps = 20; // Number of animation steps
+    const endValue = realTimeTotal;
+    const duration = 2300;
+    const steps = 20;
     const stepValue = (endValue - startValue) / steps;
     let currentStep = 0;
 
     const animate = setInterval(() => {
       currentStep += 1;
       const newValue = startValue + stepValue * currentStep;
-      setFinalTotal(Math.round(newValue)); // Round to avoid decimals
+      setFinalTotal(Math.round(newValue));
 
       if (currentStep >= steps) {
         clearInterval(animate);
-        setFinalTotal(endValue); // Ensure final value matches total
+        setFinalTotal(endValue);
       }
     }, duration / steps);
 
-    // Cleanup interval on unmount or new update
     return () => clearInterval(animate);
-  }, [total, isUpdating, finalTotal]);
+  }, [total, cartItems, isUpdating, finalTotal]);
 
   return (
     <div className="mt-6 flex flex-col items-end">
@@ -57,7 +81,17 @@ export default function CartTotal({ total }: CartTotalProps) {
           <p className="text-red-500 text-sm">+R{deliveryFee} for delivery</p>
         </div>
       )}
-      <p className="text-xl font-semibold">Total: R{finalTotal}</p>
+
+      {discount > 0 && (
+        <div className="flex items-center">
+        <FaTags className="text-sm text-green-600 mr-2" />
+        <p className="text-sm text-green-600 font-semibold">
+          Saved: R{discount.toFixed(2)}
+        </p>
+        </div>
+      )}
+
+      <p className="text-xl font-semibold">Total: R{finalTotal.toFixed(2)}</p>
     </div>
   );
 }

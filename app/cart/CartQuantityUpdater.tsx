@@ -45,7 +45,7 @@ export default function CartQuantityUpdater({
           setTimeout(() => {
             console.log("Quantity update complete, decrementing pendingUpdates");
             setPending(false);
-          }, 2000); // 2-second delay
+          }, 3000); // 2-second delay
         });
     });
   };
