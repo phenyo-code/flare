@@ -17,20 +17,29 @@ const AvailableStock = dynamic(() => import("@/components/AvailableStock"));
 export default async function CartPage() {
   const session = await getServerSession(authOptions);
 
-  if (!session) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <p className="text-xl text-gray-700 mb-4">You need to log in to view your cart.</p>
-        <Link href="/login">
-          <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-6">
-            Login
-          </button>
-        </Link>
-        <BottomNavWrapper cartItems={[]} />
-      </div>
-    );
-  }
+  return (
+    <div>
+      {/* SearchHeader is always visible */}
+      <SearchHeader placeholder="Search products" />
 
+      {!session ? (
+        <div className="flex flex-col items-center justify-center min-h-screen">
+          <p className="text-xl text-gray-700 mb-4">You need to log in to view your cart.</p>
+          <Link href="/login">
+            <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-6">
+              Login
+            </button>
+          </Link>
+          <BottomNavWrapper cartItems={[]} />
+        </div>
+      ) : (
+        <CartContent session={session} />
+      )}
+    </div>
+  );
+}
+
+async function CartContent({ session }: { session: any }) {
   try {
     const cart = await prisma.cart.findFirst({
       where: { userId: session.user.id },
@@ -61,7 +70,7 @@ export default async function CartPage() {
 
     if (!cart || cart.items.length === 0) {
       return (
-        <div className="text-center text-gray-500 mt-10">
+        <div className="text-center text-gray-500 mt-10 mb-10">
           <p>Your cart is empty.</p>
           <Link href="/">
             <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-6 mt-4">
@@ -73,7 +82,6 @@ export default async function CartPage() {
       );
     }
 
-    // Recalculate total price from cart items
     const updatedTotalPrice = cart.items.reduce(
       (total, item) => total + item.product.price * item.quantity,
       0
@@ -81,30 +89,31 @@ export default async function CartPage() {
     const deliveryFee = updatedTotalPrice < 1000 ? 100 : 0;
     const totalWithDelivery = updatedTotalPrice + deliveryFee;
 
-    // Fetch or create/update the order
     let order = await prisma.order.findFirst({
       where: { userId: session.user.id, status: "PENDING" },
-      include: { items: true }, // Include items to compare
+      include: { items: true },
     });
 
     if (order) {
-      // Compare cart items with order items and update if necessary
-      const cartItemsMap = new Map(cart.items.map(item => [item.id, item]));
-      const orderItemsMap = new Map(order.items.map(item => [item.id, item]));
+      const cartItemsMap = new Map(cart.items.map((item) => [item.id, item]));
+      const orderItemsMap = new Map(order.items.map((item) => [item.id, item]));
 
-      const itemsNeedUpdate = cart.items.some(cartItem => {
+      const itemsNeedUpdate = cart.items.some((cartItem) => {
         const orderItem = orderItemsMap.get(cartItem.id);
-        return !orderItem || orderItem.quantity !== cartItem.quantity || orderItem.price !== cartItem.product.price;
+        return (
+          !orderItem ||
+          orderItem.quantity !== cartItem.quantity ||
+          orderItem.price !== cartItem.product.price
+        );
       });
 
       if (itemsNeedUpdate || order.totalPrice !== totalWithDelivery) {
-        // Update order items and total price
         await prisma.order.update({
           where: { id: order.id },
           data: {
             totalPrice: totalWithDelivery,
             items: {
-              deleteMany: {}, // Clear existing items
+              deleteMany: {},
               create: cart.items.map((item) => ({
                 productId: item.productId,
                 sizeId: item.sizeId,
@@ -116,7 +125,6 @@ export default async function CartPage() {
         });
       }
     } else {
-      // Create new order if none exists
       order = await prisma.order.create({
         data: {
           userId: session.user.id,
@@ -153,73 +161,71 @@ export default async function CartPage() {
     }
 
     return (
-      <div>
-        <SearchHeader placeholder="Search products" />
-        <div className="container mx-auto p-6">
-          <h1 className="text-3xl font-semibold mb-6">Shopping Cart</h1>
+      <div className="container mx-auto p-6">
+        <h1 className="text-3xl font-semibold mb-6">Shopping Cart</h1>
 
-          <div className="bg-white shadow-md rounded-lg p-4">
-            {cart.items.map((item) => (
-              <div key={item.id} className="flex items-center justify-between border-b py-4">
-                <div className="w-20 h-20 relative">
-                  <Link href={`/product/${item.productId}`}>
-                    <Image
-                      src={item.product.images[0]}
-                      alt={item.product.name}
-                      layout="fill"
-                      objectFit="cover"
-                      className="rounded-md"
-                    />
-                  </Link>
+        <div className="bg-white shadow-md rounded-lg p-4">
+          {cart.items.map((item) => (
+            <div key={item.id} className="flex items-center justify-between border-b py-4">
+              <div className="w-20 h-20 relative">
+                <Link href={`/product/${item.productId}`}>
+                  <Image
+                    src={item.product.images[0]}
+                    alt={item.product.name}
+                    layout="fill"
+                    objectFit="cover"
+                    className="rounded-md"
+                  />
+                </Link>
+              </div>
+
+              <div className="flex-1 ml-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-lg font-medium truncate max-w-[170px]">
+                    {item.product.name}
+                  </p>
+                  <Suspense fallback={<span>...</span>}>
+                    <RemoveFromCartButton cartItemId={item.id} />
+                  </Suspense>
                 </div>
 
-                <div className="flex-1 ml-3">
-                  <div className="flex items-center justify-between">
-                    <p className="text-lg font-medium truncate max-w-[170px]">
-                      {item.product.name}
-                    </p>
-                    <Suspense fallback={<span>...</span>}>
-                      <RemoveFromCartButton cartItemId={item.id} />
-                    </Suspense>
-                  </div>
+                <div className="flex items-center mt-1">
+                  <p className="text-red-500 font-semibold">R{item.product.price}</p>
+                  {item.size && (
+                    <span className="ml-1 bg-gray-100 text-gray-400 px-3 py-1 rounded-full text-xs">
+                      Size / {item.size.size}
+                    </span>
+                  )}
+                </div>
 
-                  <div className="flex items-center mt-1">
-                    <p className="text-red-500 font-semibold">R{item.product.price}</p>
-                    {item.size && (
-                      <span className="ml-1 bg-gray-100 text-gray-400 px-3 py-1 rounded-full text-xs">
-                        Size / {item.size.size}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="flex justify-between items-center mt-0">
-                    <Suspense fallback={<span>Checking stock...</span>}>
-                      <AvailableStock sizeId={item.sizeId} />
-                    </Suspense>
-                    <Suspense fallback={<span>...</span>}>
-                      <CartQuantityUpdater
-                        cartItemId={item.id}
-                        initialQuantity={item.quantity}
-                        pricePerItem={item.product.price}
-                      />
-                    </Suspense>
-                  </div>
+                <div className="flex justify-between items-center mt-0">
+                  <Suspense fallback={<span>Checking stock...</span>}>
+                    <AvailableStock sizeId={item.sizeId} />
+                  </Suspense>
+                  <Suspense fallback={<span>...</span>}>
+                    <CartQuantityUpdater
+                      cartItemId={item.id}
+                      initialQuantity={item.quantity}
+                      pricePerItem={item.product.price}
+                    />
+                  </Suspense>
                 </div>
               </div>
-            ))}
-          </div>
-
-          <div className="mt-6">
-            <Suspense fallback={<p>Calculating total...</p>}>
-              <CartTotal total={totalWithDelivery} />
-            </Suspense>
-            {order && (
-              <Suspense fallback={<button className="bg-gray-500 text-white px-4 py-2">Loading...</button>}>
-                <CheckoutButton orderId={order.id} />
-              </Suspense>
-            )}
-          </div>
+            </div>
+          ))}
         </div>
+
+        <div className="mt-6">
+          <Suspense fallback={<p>Calculating total...</p>}>
+            <CartTotal total={totalWithDelivery} />
+          </Suspense>
+          {order && (
+            <Suspense fallback={<button className="bg-gray-500 text-white px-4 py-2">Loading...</button>}>
+              <CheckoutButton orderId={order.id} />
+            </Suspense>
+          )}
+        </div>
+
         <BottomNavWrapper cartItems={cart.items} />
       </div>
     );

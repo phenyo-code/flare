@@ -141,9 +141,11 @@ const Header = () => {
           <Link href="/help" className="text-gray-800" prefetch>
             <li className="py-4 px-6 border-b border-gray-200">Help</li>
           </Link>
-          <Link href="/admin" className="text-gray-800" prefetch>
-            <li className="py-4 px-6 border-b border-gray-200">Admin Dashboard</li>
-          </Link>
+          {session?.user?.role === "admin" && (
+  <Link href="/admin" className="text-gray-800" prefetch>
+    <li className="py-4 px-6 border-b border-gray-200">Admin Dashboard</li>
+  </Link>
+)}
 
           {/* Conditionally show the logout or login button */}
           {session ? (
@@ -151,7 +153,7 @@ const Header = () => {
               <li className="py-4 px-6">Logout</li>
             </a>
           ) : (
-            <Link href="/login" className="text-blue-500 font-bold" prefetch>
+            <Link href="/login" className="text-white bg-blue-500 w-full font-bold" prefetch>
               <li className="py-4 px-6 border-b border-gray-200">Login</li>
             </Link>
           )}

@@ -132,6 +132,7 @@ model User {
   @@map("users")
   Review Review[]
   ShippingAddress ShippingAddress[]
+  PasswordResetToken PasswordResetToken[]
 }
 
 model GoogleUser {
@@ -198,9 +199,15 @@ model ShippingAddress {
 }
 
 model PasswordResetToken {
-  id        String      @id @default(auto()) @map("_id") @db.ObjectId
-  email     String
-  token     String   @unique
-  expiresAt DateTime
+  id      String   @id @default(uuid()) @map("_id")
+  token   String   @unique
+  userId  String   @db.ObjectId
+  expires DateTime
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(uuid()) @map("_id")
+  email     String   @unique
   createdAt DateTime @default(now())
 }
