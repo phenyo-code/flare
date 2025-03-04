@@ -36,8 +36,9 @@ export const authOptions: NextAuthOptions = {
             data: {
               name: profile.name,
               email: profile.email,
-              password: "",
+              password: "", // No password for Google users
               role: userRole,
+              emailVerified: true, // Google users are auto-verified
             },
           });
         } else if (user.role !== userRole) {
@@ -77,12 +78,22 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password", required: true },
       },
       async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error("Please provide email and password");
+        }
+
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
         });
 
-        if (!user || !(await bcrypt.compare(credentials.password, user.password))) {
+        // Check if user exists and password matches
+        if (!user || !user.password || !(await bcrypt.compare(credentials.password, user.password))) {
           throw new Error("Invalid email or password");
+        }
+
+        // Check if email is verified
+        if (!user.emailVerified) {
+          throw new Error("Please verify your email before signing in");
         }
 
         return { id: user.id, name: user.name, email: user.email, role: user.role };

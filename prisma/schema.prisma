@@ -117,22 +117,24 @@ model OrderItem {
 
 
 model User {
-  id         String      @id @default(auto()) @map("_id") @db.ObjectId
-  name       String?
-  email      String      @unique
-  password   String?
-  role       String      @default("user")
-  image      String? // Store Google profile image URL
-  createdAt  DateTime    @default(now())
-  googleUser GoogleUser? // Link to the GoogleUser model, if applicable
-  Session    Session[]
-  carts      Cart[] // User can have multiple carts
-  orders     Order[] // User can have multiple orders
+  id               String      @id @default(auto()) @map("_id") @db.ObjectId
+  name             String?
+  email            String      @unique
+  password         String?
+  role             String      @default("user")
+  image            String?     // Store Google profile image URL
+  createdAt        DateTime    @default(now())
+  emailVerified    Boolean     @default(false) // New: Tracks if email is verified
+  verificationToken String?    // New: Stores the verification token
+  googleUser       GoogleUser? // Link to the GoogleUser model, if applicable
+  Session          Session[]
+  carts            Cart[]     // User can have multiple carts
+  orders           Order[]    // User can have multiple orders
+  Review           Review[]
+  ShippingAddress  ShippingAddress[]
+  PasswordResetToken PasswordResetToken[]
 
   @@map("users")
-  Review Review[]
-  ShippingAddress ShippingAddress[]
-  PasswordResetToken PasswordResetToken[]
 }
 
 model GoogleUser {

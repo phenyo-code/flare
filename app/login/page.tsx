@@ -30,7 +30,18 @@ export default function SignIn() {
     const result = await signIn("credentials", { redirect: false, email, password });
     setLoading(false);
     if (result?.error) {
-      setError("Invalid email or password.");
+      if (result.error === "Please verify your email before signing in") {
+        setError(
+          <span>
+            Please verify your email before signing in.{" "}
+            <a href={`/resend-verification?email=${encodeURIComponent(email)}`} className="text-blue-500 underline">
+              Resend verification email
+            </a>
+          </span> as any
+        );
+      } else {
+        setError("Invalid email or password.");
+      }
     } else {
       router.push(callbackUrl || "/");
     }
@@ -56,7 +67,6 @@ export default function SignIn() {
             className="flex items-center justify-center w-full px-4 py-2 border border-blue-500 text-blue-500 rounded hover:bg-blue-100 transition"
             disabled={loading}
           >
-            {/* Google SVG */}
             <svg className="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
               <path fill="#EA4335" d="M24 9.5c3.69 0 6.74 1.46 8.78 3.85l6.46-6.46C34.3 3.3 29.48 1.5 24 1.5 14.85 1.5 7.13 7.28 3.68 15.03l7.65 5.91C12.54 14.08 17.74 9.5 24 9.5z" />
               <path fill="#34A853" d="M24 46.5c5.09 0 9.47-1.64 12.61-4.48l-7.17-5.83c-1.46.99-3.32 1.58-5.44 1.58-4.19 0-7.75-2.83-9.03-6.63l-7.76 5.99C10.43 41.46 16.84 46.5 24 46.5z" />
