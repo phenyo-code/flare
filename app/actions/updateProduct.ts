@@ -1,68 +1,86 @@
+"use server";
+
 import { prisma } from "@/lib/db/prisma";
+import { redirect } from "next/navigation";
 
 export async function updateProduct(formData: FormData): Promise<void> {
-    "use server";
+  const id = formData.get("id")?.toString();
+  const name = formData.get("name")?.toString();
+  const price = Number(formData.get("price") || 0);
+  const originalPrice = Number(formData.get("originalPrice")) || price;
+  const category = formData.get("category")?.toString();
+  const filter = formData.get("filter")?.toString();
+  const style = formData.get("style")?.toString();
+  const type = formData.get("type")?.toString();
+  const matchesWithString = formData.get("matchesWith")?.toString();
+  const matchesWith = matchesWithString ? matchesWithString.split(",").map(item => item.trim()) : [];
+  const images = [
+    formData.get("image1")?.toString(),
+    formData.get("image2")?.toString(),
+    formData.get("image3")?.toString(),
+    formData.get("image4")?.toString(),
+    formData.get("image5")?.toString(),
+  ].filter(Boolean);
 
-    const id = formData.get("id")?.toString();
-    const name = formData.get("name")?.toString();
-    const price = Number(formData.get("price") || 0);
-    const originalPrice = Number(formData.get("originalPrice")) || price; // Default to price if not provided
-    const category = formData.get("category")?.toString();
-    const filter = formData.get("filter")?.toString();
-    const style = formData.get("style")?.toString();
-    const type = formData.get("type")?.toString();
-    
-    // Get matchesWith as an array (comma-separated input)
-    const matchesWithString = formData.get("matchesWith")?.toString();
-    const matchesWith = matchesWithString ? matchesWithString.split(",").map(item => item.trim()) : [];
+  if (!id || !name || !price || !category || !filter || !images.length) {
+    console.error("Please fill in all required fields.");
+    return;
+  }
 
-    // Get image URLs
-    const images = [
-        formData.get("image1")?.toString(),
-        formData.get("image2")?.toString(),
-        formData.get("image3")?.toString(),
-        formData.get("image4")?.toString(),
-        formData.get("image5")?.toString(),
-    ].filter(Boolean);
+  await prisma.product.update({
+    where: { id },
+    data: { 
+      name, 
+      price, 
+      Originalprice: originalPrice, 
+      category, 
+      filter, 
+      images,
+      style,
+      type,
+      matchesWith,
+    },
+  });
 
-    const sizesData = formData.getAll("sizes"); // Get all sizes data
+  console.log("Product updated successfully!");
+  redirect("/admin"); // Redirect after update
+}
 
-    if (!id || !name || !price || !category || !filter || !images.length || !sizesData.length) {
-        console.error("Please fill in all fields.");
-        return;
+// 🔥 Delete Product Action
+export async function deleteProduct(formData: FormData): Promise<void> {
+  const id = formData.get("id")?.toString();
+
+  console.log("Attempting to delete size with ID:", id);
+
+  if (!id) {
+    console.error("Size ID is required for deletion.");
+    throw new Error("Size ID is required");
+  }
+
+  try {
+    // Check for related records
+    const relatedItems = await prisma.orderItem.count({
+      where: {
+        sizeId: id,
+      },
+    });
+
+    if (relatedItems > 0) {
+      throw new Error("Cannot delete size because it is referenced by existing order items");
     }
 
-    // Update product
-    await prisma.product.update({
-        where: { id },
-        data: { 
-            name, 
-            price, 
-            Originalprice: originalPrice, 
-            category, 
-            filter, 
-            images,
-            style,
-            type,
-            matchesWith, // Update the matchesWith field as an array
-        },
+    const deletedSize = await prisma.size.delete({
+      where: { id },
     });
 
-    // Update sizes
-    await prisma.size.deleteMany({ where: { productId: id } }); // Clear existing sizes
-    
-    const sizes = sizesData.map((sizeData: any) => {
-        const [size, sold, quantity, measurement] = sizeData.toString().split(":"); // Expect format 'Size:Sold:Quantity:Measurement'
-        return {
-            size,
-            sold: Number(sold),
-            quantity: Number(quantity),
-            measurement: measurement || "default_value", // Use default if not provided
-            productId: id,
-        };
-    });
+    console.log(`Size ${deletedSize.id} deleted successfully!`);
+  } catch (error) {
+    console.error("Failed to delete size:", error);
+    if (error instanceof Error) {
+      throw new Error(`Failed to delete size: ${error.message}`);
+    }
+    throw new Error("An unexpected error occurred during deletion");
+  }
 
-    await prisma.size.createMany({ data: sizes });
-
-    console.log("Product updated successfully!");
+  redirect("/admin");
 }

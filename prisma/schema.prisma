@@ -45,7 +45,7 @@ model Size {
   updatedAt   DateTime @updatedAt
 
   CartItem    CartItem[]  
-  OrderItem   OrderItem[] 
+  OrderItem   OrderItem[]
 }
 
 
@@ -80,25 +80,27 @@ model CartItem {
 
 model Order {
   id                String         @id @default(auto()) @map("_id") @db.ObjectId
-  userId            String         @db.ObjectId // Link to the User
+  userId            String         @db.ObjectId
   user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   shippingName      String
   shippingEmail     String
   shippingAddress   String
-  shippingPhoneNumber String?      // Optional phone number field
-  status            String         // e.g., 'pending', 'paid', 'shipped'
+  shippingPhoneNumber String?
+  status            String
   totalPrice        Int
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
-  stripeSessionId String?
+  stripeSessionId   String?
   items             OrderItem[]
-
-  // Added field to reference the shipping address
-  shippingAddressId String?        @db.ObjectId // Optional field to link to an existing address
+  shippingAddressId String?        @db.ObjectId
   shippingAddressRef ShippingAddress? @relation(fields: [shippingAddressId], references: [id])
+  couponId          String?        @db.ObjectId // Link to Coupon (general or user-specific)
+  coupon            Coupon?        @relation(fields: [couponId], references: [id])
+  discountApplied   Int?           @default(0)
 
   @@map("orders")
 }
+
 
 
 model OrderItem {
@@ -110,32 +112,35 @@ model OrderItem {
   sizeId    String  @db.ObjectId // Add sizeId field for the selected size
   product   Product @relation(fields: [productId], references: [id])
   order     Order   @relation(fields: [orderId], references: [id])
-  size      Size    @relation(fields: [sizeId], references: [id]) // Define the relationship to Size model
+  size      Size    @relation(fields: [sizeId], references: [id], onDelete: Cascade) // Define the relationship to Size model
 
   @@map("orderitems")
 }
 
 
 model User {
-  id               String      @id @default(auto()) @map("_id") @db.ObjectId
+  id               String              @id @default(auto()) @map("_id") @db.ObjectId
   name             String?
-  email            String      @unique
+  email            String              @unique
   password         String?
-  role             String      @default("user")
-  image            String?     // Store Google profile image URL
-  createdAt        DateTime    @default(now())
-  emailVerified    Boolean     @default(false) // New: Tracks if email is verified
-  verificationToken String?    // New: Stores the verification token
-  googleUser       GoogleUser? // Link to the GoogleUser model, if applicable
+  role             String              @default("user")
+  image            String?
+  createdAt        DateTime            @default(now())
+  emailVerified    Boolean             @default(false)
+  verificationToken String?
+  googleUser       GoogleUser?
   Session          Session[]
-  carts            Cart[]     // User can have multiple carts
-  orders           Order[]    // User can have multiple orders
+  carts            Cart[]
+  orders           Order[]
   Review           Review[]
   ShippingAddress  ShippingAddress[]
   PasswordResetToken PasswordResetToken[]
+  coupons          Coupon[]
+  newsletterSubscriptions NewsletterSubscriber[] @relation // Add this line
 
   @@map("users")
 }
+
 
 model GoogleUser {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
@@ -169,18 +174,18 @@ enum Fit {
 }
 
 model Review {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  productId  String   @db.ObjectId
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  userId     String   @db.ObjectId
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  rating     Int      
-  comment    String   
-  fitFeedback Fit?  // Stores whether it runs small, true to size, or large
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+ id String @id @default(auto()) @map("_id") @db.ObjectId
+ productId String @db.ObjectId
+ product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+ userId String @db.ObjectId
+ user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+ rating Int 
+ comment String 
+ fitFeedback Fit?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
 
-  @@map("reviews")
+ @@map("reviews")
 }
 
 
@@ -209,7 +214,30 @@ model PasswordResetToken {
 }
 
 model NewsletterSubscriber {
-  id        String   @id @default(uuid()) @map("_id")
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   email     String   @unique
+  name      String?  // Optional name field for personalization
+  userId    String?  @db.ObjectId // Optional link to User
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+
+  @@map("newsletter_subscribers")
+}
+
+model Coupon {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  code          String    @unique // Unique code (e.g., "SAVE10" or "USER123-REV5")
+  discountType  String    // "percentage" or "fixed"
+  discountValue Int       // Value (e.g., 10 for 10% or 1000 for R10)
+  minOrderValue Int?      // Minimum order value to apply
+  maxUses       Int?      // Maximum number of uses (1 for user-specific)
+  uses          Int       @default(0) // Current number of uses
+  expiresAt     DateTime? // Expiration date
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  orders        Order[]   // Orders using this coupon
+  userId        String?   @db.ObjectId // Optional: Link to user for user-specific coupons
+  user          User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("coupons")
 }

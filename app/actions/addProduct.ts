@@ -10,11 +10,11 @@ export async function AddProduct(formData: FormData) {
   const originalPrice = Number(formData.get("originalPrice") || price);
   const category = formData.get("category")?.toString();
   const filter = formData.get("filter")?.toString();
+  const brandName = formData.get("brandName")?.toString(); // Added brandName
   const style = formData.get("style")?.toString();
   const type = formData.get("type")?.toString();
   const matchesWithRaw = formData.get("matchesWith")?.toString();
   const matchesWith = matchesWithRaw ? matchesWithRaw.split(",").map((item) => item.trim()) : [];
-  
 
   // Collecting images, filtering out empty values
   const images = [
@@ -63,7 +63,7 @@ export async function AddProduct(formData: FormData) {
 
       return {
         size,
-        measurement, // Now correctly storing measurement
+        measurement,
         sold: Number(sold),
         quantity: Number(quantity),
         productId: product.id, // Linking to the created product

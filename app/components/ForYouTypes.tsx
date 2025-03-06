@@ -17,17 +17,19 @@ interface ProductWithSizes {
   reviews: any[];
   createdAt: Date;
   updatedAt: Date;
+  brandName?: string; 
   sizes: { id: string; size: string; quantity: number; measurement: string }[];
-  style: string;
-  type: string;
+  style: string | null; // Adjusted to match schema
+  type: string | null;  // Adjusted to match schema
   matchesWith: string[];
 }
 
 interface ForYouTypesProps {
   initialProducts: ProductWithSizes[];
   filters: string[];
-  featuredProduct: ProductWithSizes;
+  featuredProduct: ProductWithSizes | null; // Adjusted to nullable
   cartId?: string;
+  allProducts: ProductWithSizes[]; // Added for ForYouHero personalization
 }
 
 export default function ForYouTypes({
@@ -35,6 +37,7 @@ export default function ForYouTypes({
   filters,
   featuredProduct,
   cartId,
+  allProducts,
 }: ForYouTypesProps) {
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
 
@@ -44,7 +47,7 @@ export default function ForYouTypes({
 
   return (
     <div>
-      <ForYouHero product={featuredProduct} />
+      <ForYouHero initialProduct={featuredProduct} allProducts={allProducts} />
 
       {/* Now Trending Heading */}
       <h2 className="text-xl ml-4 sm:text-2xl font-extrabold my-4 uppercase tracking-wide">

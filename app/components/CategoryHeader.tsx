@@ -1,15 +1,32 @@
-import Link from "next/link";
+// components/CategoryHeader.tsx
+"use client";
 
-const categories: string[] = ["ALL", "FOR YOU",  "WOMEN", "MEN", "BRANDS", "ACCESSORIES"];
+import Link from "next/link";
+import { getCookie, storeCategoryView } from "@/utils/cookies";
+
+const categories: string[] = ["ALL", "FOR YOU", "WOMEN", "MEN", "BRANDS", "ACCESSORIES"];
 
 interface CategoryHeaderProps {
   activeCategory: string;
 }
 
 export default function CategoryHeader({ activeCategory }: CategoryHeaderProps) {
+  const handleCategoryClick = (category: string) => {
+    storeCategoryView(category); // Track on click
+  };
+
+  // Check if any personalization cookies exist
+  const hasCookies =
+    getCookie("user_product_views") || getCookie("user_searches") || getCookie("user_category_views");
+
+  // Filter categories to hide FOR YOU if no cookies
+  const visibleCategories = hasCookies
+    ? categories
+    : categories.filter((category) => category !== "FOR YOU");
+
   return (
     <div className="header-categories-row uppercase flex font-bold mb-0 items-start pt-2 px-2 overflow-x-auto lg:justify-between">
-      {categories.map((category) => {
+      {visibleCategories.map((category) => {
         const isActive = category.toUpperCase() === activeCategory.toUpperCase();
         const isForYou = category === "FOR YOU";
         const isAll = category === "ALL";
@@ -23,6 +40,7 @@ export default function CategoryHeader({ activeCategory }: CategoryHeaderProps) 
               } hover:text-black transition-colors duration-200`}
               aria-current={isActive ? "page" : undefined}
               prefetch
+              onClick={() => handleCategoryClick(category)}
             >
               {category}
             </Link>

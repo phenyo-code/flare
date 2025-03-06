@@ -16,6 +16,7 @@ interface ProductWithSizes {
   reviews: any[];
   createdAt: Date;
   updatedAt: Date;
+  brandName?: string; 
   sizes: { id: string; size: string; quantity: number; measurement: string }[];
   style: string;
   type: string;

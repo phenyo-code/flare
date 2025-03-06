@@ -1,122 +1,97 @@
+// actions/PlaceOrder.tsx
 "use server";
 
 import { redirect } from "next/navigation";
-import { prisma } from "../lib/db/prisma";
+import { prisma } from "@/lib/db/prisma";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../api/auth/[...nextauth]/options";
+import { authOptions } from "@/api/auth/[...nextauth]/options";
+import { generateCouponForOrder } from "./couponUtils";
 
-// Server action function to place an order
 export async function PlaceOrder(formData: FormData): Promise<void> {
-
   const shippingName = formData.get("shippingName")?.toString();
   const shippingEmail = formData.get("shippingEmail")?.toString();
   const shippingAddress = formData.get("shippingAddress")?.toString();
-  const shippingPhoneNumber = formData.get("shippingPhoneNumber")?.toString(); // New field
+  const shippingPhoneNumber = formData.get("shippingPhoneNumber")?.toString();
+  const couponCode = formData.get("couponCode")?.toString()?.toUpperCase();
 
-   // Check if required fields are provided first
-   if (!shippingName || !shippingEmail || !shippingAddress || !shippingPhoneNumber) {
+  if (!shippingName || !shippingEmail || !shippingAddress || !shippingPhoneNumber) {
     throw new Error("Please fill in all fields.");
   }
 
-  // Fetch user session to get logged-in user's details
   const session = await getServerSession(authOptions);
-
-  // If user is not authenticated, throw an error
   if (!session || !session.user) {
     throw new Error("You must be logged in to place an order.");
   }
 
-  // Fetch cart items for the logged-in user
   const cart = await prisma.cart.findFirst({
-    where: {
-      userId: session.user.id, // Ensure to fetch cart for logged-in user
-    },
-    include: {
+    where: { userId: session.user.id },
+    include: { items: { include: { size: true, product: true } } },
+  });
+
+  if (!cart || cart.items.length === 0) {
+    throw new Error("Your cart is empty.");
+  }
+
+  let totalPrice = cart.items.reduce((total, item) => total + (item.product?.price || 0) * item.quantity, 0);
+  let discountApplied = 0;
+  let couponId: string | undefined;
+
+  if (couponCode) {
+    const coupon = await prisma.coupon.findUnique({ where: { code: couponCode } });
+    if (!coupon) throw new Error("Invalid coupon code.");
+
+    if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) throw new Error("Coupon has expired.");
+    if (coupon.maxUses && coupon.uses >= coupon.maxUses) throw new Error("Coupon max uses reached.");
+    if (coupon.userId && coupon.userId !== session.user.id) throw new Error("This coupon is not valid for your account.");
+    if (coupon.minOrderValue && totalPrice < coupon.minOrderValue) throw new Error(`Order must be at least R${coupon.minOrderValue}.`);
+
+    discountApplied = coupon.discountType === "percentage" ? Math.round((totalPrice * coupon.discountValue) / 100) : coupon.discountValue;
+    totalPrice = Math.max(totalPrice - discountApplied, 0);
+    couponId = coupon.id;
+
+    await prisma.coupon.update({
+      where: { id: couponId },
+      data: { uses: { increment: 1 } },
+    });
+  }
+
+  const order = await prisma.order.create({
+    data: {
+      userId: session.user.id,
+      shippingName,
+      shippingEmail,
+      shippingAddress,
+      shippingPhoneNumber,
+      status: "order submitted",
+      totalPrice,
+      couponId,
+      discountApplied,
       items: {
-        include: {
-          size: true, // Include the size of the product for each cart item
-        },
+        create: cart.items.map((item) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+          price: item.product?.price || 0,
+          sizeId: item.sizeId,
+        })),
       },
     },
   });
 
-  if (!cart || cart.items.length === 0) {
-    throw new Error("Your cart is empty. Please add items before placing an order.");
-  }
-
-  // Create a new order with the userId from the session
-  const order = await prisma.order.create({
-    data: {
-      userId: session.user.id, // Use the authenticated user's ID
-      shippingName,
-      shippingEmail,
-      shippingAddress,
-      shippingPhoneNumber, // Add phone number
-      status: "pending", // Default status
-      totalPrice: 0, // Placeholder for total price, will update later
-    },
-  });
-
-  // Create order items from the cart items
-  const orderItems = await Promise.all(
-    cart.items.map(async (item) => {
-      const product = await prisma.product.findUnique({
-        where: { id: item.productId },
-        select: { price: true },
-      });
-
-      if (!product) {
-        throw new Error(`Product not found for item: ${item.productId}`);
-      }
-
-      // Return order items with the sizeId linked to each item
-      return {
-        orderId: order.id,
-        productId: item.productId,
-        quantity: item.quantity,
-        price: product.price || 0, // Default to 0 if price is not found
-        sizeId: item.sizeId, // Include the sizeId for each item
-      };
-    })
-  );
-
-  // Insert the order items into the database
-  await prisma.orderItem.createMany({
-    data: orderItems,
-  });
-
-  // Update stock levels (decrease quantity of each size purchased)
   await Promise.all(
-    orderItems.map(async (orderItem) => {
+    cart.items.map(async (item) => {
       await prisma.size.update({
-        where: { id: orderItem.sizeId },
-        data: {
-          quantity: {
-            decrement: orderItem.quantity, // Decrease the quantity based on the ordered quantity
-          },
-          sold: {
-            increment: orderItem.quantity, // Optionally, track the sold quantity
-          },
-        },
+        where: { id: item.sizeId },
+        data: { quantity: { decrement: item.quantity }, sold: { increment: item.quantity } },
       });
     })
   );
 
-  // Calculate the total price (sum of item prices * quantity)
-  const totalPrice = orderItems.reduce((total, item) => total + item.price * item.quantity, 0);
-
-  // Update the order with the total price
-  await prisma.order.update({
-    where: { id: order.id },
-    data: { totalPrice },
-  });
-
-  // Clear the cart for the user
   await prisma.cart.update({
     where: { id: cart.id },
     data: { items: { deleteMany: {} } },
   });
 
-  // Redirect to the success page after placing the order
-  redirect("/order-success?status=pending");
+  await generateCouponForOrder(session.user.id);
+
+  redirect("/order-success?status=order submitted");
 }

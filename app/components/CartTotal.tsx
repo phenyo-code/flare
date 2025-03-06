@@ -1,54 +1,67 @@
+// components/CartTotal.tsx
 "use client";
 
 import { useState, useEffect } from "react";
 import { FaTruck, FaGift, FaTags } from "react-icons/fa";
 import { useCartStore } from "../store/cartStore";
 
-interface CartTotalProps {
-  total: number;
+interface Coupon {
+  discountType: string;
+  discountValue: number;
 }
 
-export default function CartTotal({ total }: CartTotalProps) {
+interface CartTotalProps {
+  total: number;
+  coupon: Coupon | null;
+}
+
+export default function CartTotal({ total, coupon }: CartTotalProps) {
   const [finalTotal, setFinalTotal] = useState(total);
-  const [discount, setDiscount] = useState(0);
-  const { cartItems, isUpdating } = useCartStore();
+  const [tieredDiscount, setTieredDiscount] = useState(0);
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const { cartItems, isUpdating, couponDiscount: storeCouponDiscount, finalTotal: storeFinalTotal } = useCartStore();
   const deliveryFee = 100;
   const freeDeliveryThreshold = 1000;
 
   useEffect(() => {
     let newTotal = total;
-    let discountPercentage = 0;
+    let tieredDiscountPercentage = 0;
 
-    // Apply discounts based on total price
-    if (total >= 3000) {
-      discountPercentage = 15;
-    } else if (total >= 2500) {
-      discountPercentage = 10;
-    } else if (total >= 2000) {
-      discountPercentage = 5;
+    const subtotal = total - (total < freeDeliveryThreshold ? deliveryFee : 0);
+    if (subtotal >= 3000) {
+      tieredDiscountPercentage = 15;
+    } else if (subtotal >= 2500) {
+      tieredDiscountPercentage = 10;
+    } else if (subtotal >= 2000) {
+      tieredDiscountPercentage = 5;
     }
 
-    if (discountPercentage > 0) {
-      const discountAmount = (total * discountPercentage) / 100;
-      newTotal -= discountAmount;
-      setDiscount(discountAmount);
+    const tieredDiscountAmount = tieredDiscountPercentage > 0 ? (subtotal * tieredDiscountPercentage) / 100 : 0;
+    newTotal -= tieredDiscountAmount;
+    setTieredDiscount(tieredDiscountAmount);
+
+    if (coupon) {
+      const calculatedCouponDiscount =
+        coupon.discountType === "percentage"
+          ? (subtotal * coupon.discountValue) / 100
+          : coupon.discountValue;
+      newTotal -= calculatedCouponDiscount;
+      setCouponDiscount(calculatedCouponDiscount);
+    } else if (storeCouponDiscount > 0) {
+      newTotal -= storeCouponDiscount;
+      setCouponDiscount(storeCouponDiscount);
     } else {
-      setDiscount(0);
+      setCouponDiscount(0);
     }
 
     if (!isUpdating()) {
-      setFinalTotal(newTotal);
+      setFinalTotal(Math.max(newTotal, 0));
       return;
     }
 
-    // Real-time total update during cart updates
-    const realTimeTotal = cartItems.reduce(
-      (sum, item) => sum + item.pricePerItem * item.quantity,
-      0
-    );
-
+    const realTimeTotal = cartItems.reduce((sum, item) => sum + item.pricePerItem * item.quantity, 0);
     const startValue = finalTotal;
-    const endValue = realTimeTotal;
+    const endValue = storeFinalTotal || realTimeTotal - tieredDiscountAmount - (storeCouponDiscount || 0);
     const duration = 2300;
     const steps = 20;
     const stepValue = (endValue - startValue) / steps;
@@ -58,15 +71,14 @@ export default function CartTotal({ total }: CartTotalProps) {
       currentStep += 1;
       const newValue = startValue + stepValue * currentStep;
       setFinalTotal(Math.round(newValue));
-
       if (currentStep >= steps) {
         clearInterval(animate);
-        setFinalTotal(endValue);
+        setFinalTotal(Math.max(endValue, 0));
       }
     }, duration / steps);
 
     return () => clearInterval(animate);
-  }, [total, cartItems, isUpdating, finalTotal]);
+  }, [total, cartItems, isUpdating, coupon, storeCouponDiscount, storeFinalTotal]);
 
   return (
     <div className="mt-6 flex flex-col items-end">
@@ -81,16 +93,22 @@ export default function CartTotal({ total }: CartTotalProps) {
           <p className="text-red-500 text-sm">+R{deliveryFee} for delivery</p>
         </div>
       )}
-
-      {discount > 0 && (
+      {tieredDiscount > 0 && (
         <div className="flex items-center">
-        <FaTags className="text-sm text-green-600 mr-2" />
-        <p className="text-sm text-green-600 font-semibold">
-          Saved: R{discount.toFixed(2)}
-        </p>
+          <FaTags className="text-sm text-green-600 mr-2" />
+          <p className="text-sm text-green-600 font-semibold">
+            Tiered Savings: R{tieredDiscount.toFixed(2)}
+          </p>
         </div>
       )}
-
+      {couponDiscount > 0 && (
+        <div className="flex items-center">
+          <FaGift className="text-sm text-green-600 mr-2" />
+          <p className="text-sm text-green-600 font-semibold">
+            Coupon Savings: R{couponDiscount.toFixed(2)}
+          </p>
+        </div>
+      )}
       <p className="text-xl font-semibold">Total: R{finalTotal.toFixed(2)}</p>
     </div>
   );

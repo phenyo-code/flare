@@ -1,17 +1,18 @@
 "use client";
 
 import React, { useTransition } from "react";
-import { signUp } from "@/actions/signupAction"; // Adjust path if needed
+import { signUp } from "@/actions/signupAction";
 import PasswordStrength from "./PasswordStrength";
 
 export default function SignUpPage() {
-  const [isPending, startTransition] = useTransition(); // Add useTransition hook
-  const [error, setError] = React.useState<string | null>(null); // Optional: Show errors from the action
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = React.useState<string | null>(null);
 
   const handleSubmit = (formData: FormData) => {
     startTransition(async () => {
       try {
-        await signUp(formData); // Call the server action
+        await signUp(formData);
+        // If signUp succeeds, it redirects to /verify-email, so no further action is needed here
       } catch (err: any) {
         setError(err.message || "Something went wrong during signup.");
       }
@@ -25,32 +26,64 @@ export default function SignUpPage() {
 
         {error && <p className="text-center text-red-500">{error}</p>}
 
-        {/* The form to collect user data */}
-        <form action={handleSubmit}>
-          <input
-            name="name"
-            placeholder="Name"
-            className="w-full p-2 mb-2 border border-gray-300 rounded-md"
-            required
-            disabled={isPending} // Disable input while pending
-          />
+        <form action={handleSubmit} className="space-y-4">
+          <div>
+            <input
+              name="name"
+              placeholder="Name"
+              className="w-full p-2 border border-gray-300 rounded-md"
+              required
+              disabled={isPending}
+            />
+          </div>
 
-          <input
-            name="email"
-            placeholder="Email"
-            type="email"
-            className="w-full p-2 mb-2 border border-gray-300 rounded-md"
-            required
-            disabled={isPending} // Disable input while pending
-          />
+          <div>
+            <input
+              name="email"
+              placeholder="Email"
+              type="email"
+              className="w-full p-2 border border-gray-300 rounded-md"
+              required
+              disabled={isPending}
+            />
+          </div>
 
-          {/* Password strength indicator */}
           <PasswordStrength />
+
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              name="subscribeToNewsletter"
+              id="subscribeToNewsletter"
+              className="h-4 w-4 text-red-500 border-gray-300 rounded"
+              disabled={isPending}
+            />
+            <label htmlFor="subscribeToNewsletter" className="text-sm text-gray-700">
+              Subscribe to newsletter
+            </label>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              name="acceptTerms"
+              id="acceptTerms"
+              className="h-4 w-4 text-red-500 border-gray-300 rounded"
+              required
+              disabled={isPending}
+            />
+            <label htmlFor="acceptTerms" className="text-sm text-gray-700">
+              I accept the{" "}
+              <a href="/terms" className="text-blue-500 hover:underline">
+                Terms and Conditions
+              </a>
+            </label>
+          </div>
 
           <button
             type="submit"
-            className="mt-4 w-full bg-green-500 text-white p-2 rounded-md disabled:bg-gray-400 disabled:cursor-not-allowed"
-            disabled={isPending} // Disable button while pending
+            className="w-full bg-green-500 text-white p-2 rounded-md disabled:bg-gray-400 disabled:cursor-not-allowed"
+            disabled={isPending}
           >
             {isPending ? "Signing Up..." : "Sign Up"}
           </button>

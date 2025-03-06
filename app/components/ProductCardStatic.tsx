@@ -3,8 +3,10 @@ import Image from "next/image";
 import ProductLink from "./ProductLink";
 import { IoBagAddOutline } from "react-icons/io5";
 
+
 interface ProductWithSizes extends Product {
   sizes: { id: string; size: string; quantity: number; measurement: string }[];
+
 }
 
 interface ProductCardStaticProps {

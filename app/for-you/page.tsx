@@ -1,12 +1,11 @@
 import { prisma } from "../lib/db/prisma";
 import Header from "../components/Header";
 import CategoryHeader from "../components/CategoryHeader";
-import Footer from "../components/Footer";
 import FreeDeliveryBanner from "@/components/FreeDelivery";
 import ForYouHero from "@/components/ForYouHero";
 import { Suspense } from "react";
 import dynamic from "next/dynamic";
-import ForYouTypes from "../components/ForYouTypes"; // Already correct
+import ForYouTypes from "../components/ForYouTypes";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../api/auth/[...nextauth]/options";
 import StandaloneHeader from "@/components/StandaloneHeader";
@@ -33,9 +32,8 @@ export default async function ForYouPage() {
       })
     : null;
 
-  const featuredProductName = "Streetwear Vintage Multicolor Jacket";
-  const selectedFeaturedProduct =
-    products.find((p) => p.name === featuredProductName) || products[0];
+  // Default fallback product
+  const defaultFeaturedProduct = products[0] || null;
 
   const filters = Array.from(new Set(products.map((p) => p.filter).filter((f) => f)));
 
@@ -50,14 +48,14 @@ export default async function ForYouPage() {
           <ForYouTypes
             initialProducts={products}
             filters={filters}
-            featuredProduct={selectedFeaturedProduct}
+            featuredProduct={defaultFeaturedProduct}
+            allProducts={products} // Pass all products for ForYouHero
             cartId={cart?.id}
           />
         ) : (
           <InteractionMessage />
         )}
       </Suspense>
-      <Footer />
     </div>
   );
 }

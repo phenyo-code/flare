@@ -1,3 +1,4 @@
+// actions/checkout.ts (assuming this is the file path)
 "use server";
 
 import { stripe } from "@/lib/stripe";
@@ -31,6 +32,7 @@ export async function startCheckout(orderId: string) {
     include: {
       user: true,
       items: { include: { product: true } },
+      coupon: true, // Include coupon details
     },
   });
 
@@ -45,26 +47,42 @@ export async function startCheckout(orderId: string) {
     0
   );
 
-  // Apply discounts based on total price
-  let discountPercentage = 0;
+  // Apply tiered discounts based on subtotal
+  let tieredDiscountPercentage = 0;
   if (updatedTotalPrice >= 3000) {
-    discountPercentage = 15;
+    tieredDiscountPercentage = 15;
   } else if (updatedTotalPrice >= 2500) {
-    discountPercentage = 10;
+    tieredDiscountPercentage = 10;
   } else if (updatedTotalPrice >= 2000) {
-    discountPercentage = 5;
+    tieredDiscountPercentage = 5;
   }
 
-  const discountAmount = (updatedTotalPrice * discountPercentage) / 100;
-  updatedTotalPrice -= discountAmount; // Apply discount
+  const tieredDiscountAmount = tieredDiscountPercentage > 0
+    ? Math.round((updatedTotalPrice * tieredDiscountPercentage) / 100)
+    : 0;
+  updatedTotalPrice -= tieredDiscountAmount;
 
+  // Apply coupon discount if present
+  let couponDiscountAmount = 0;
+  if (order.coupon) {
+    couponDiscountAmount =
+      order.coupon.discountType === "percentage"
+        ? Math.round((updatedTotalPrice * order.coupon.discountValue) / 100)
+        : order.coupon.discountValue;
+    updatedTotalPrice -= couponDiscountAmount;
+  }
+
+  // Add delivery fee based on final total after discounts
   const deliveryFee = updatedTotalPrice < 1000 ? 100 : 0;
-  const finalPrice = updatedTotalPrice + deliveryFee;
+  const finalPrice = Math.max(updatedTotalPrice + deliveryFee, 0); // Ensure no negative total
 
-  // Update the order with the recalculated total price
+  // Update the order with the recalculated total price and discount details
   await prisma.order.update({
     where: { id: orderObjectId.toString() },
-    data: { totalPrice: finalPrice },
+    data: {
+      totalPrice: finalPrice,
+      discountApplied: tieredDiscountAmount + couponDiscountAmount, // Store total discount
+    },
   });
 
   // Create Stripe Checkout session with updated total
@@ -79,9 +97,12 @@ export async function startCheckout(orderId: string) {
       {
         price_data: {
           currency: "zar",
-          product_data: { 
+          product_data: {
             name: "Your Order",
-            description: discountAmount > 0 ? `Saved: R${discountAmount.toFixed(2)}` : undefined,
+            description:
+              tieredDiscountAmount > 0 || couponDiscountAmount > 0
+                ? `Saved: R${(tieredDiscountAmount + couponDiscountAmount).toFixed(2)}`
+                : undefined,
           },
           unit_amount: Math.round(finalPrice * 100), // Ensure it's an integer for Stripe
         },

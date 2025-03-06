@@ -1,3 +1,4 @@
+// app/cart/page.tsx
 import { prisma } from "../lib/db/prisma";
 import Image from "next/image";
 import dynamic from "next/dynamic";
@@ -7,6 +8,8 @@ import { authOptions } from "../api/auth/[...nextauth]/options";
 import SearchHeader from "../components/SearchHeader";
 import { Suspense } from "react";
 import BottomNavWrapper from "@/components/BottomNavWrapper";
+import CouponSection from "@/components/CouponSection";
+import CouponInput from "@/components/CouponInput";
 
 const RemoveFromCartButton = dynamic(() => import("../product/[id]/RemoveFromCartButton"));
 const CartTotal = dynamic(() => import("@/components/CartTotal"));
@@ -19,9 +22,7 @@ export default async function CartPage() {
 
   return (
     <div>
-      {/* SearchHeader is always visible */}
       <SearchHeader placeholder="Search products" />
-
       {!session ? (
         <div className="flex flex-col items-center justify-center min-h-screen">
           <p className="text-xl text-gray-700 mb-4">You need to log in to view your cart.</p>
@@ -91,7 +92,15 @@ async function CartContent({ session }: { session: any }) {
 
     let order = await prisma.order.findFirst({
       where: { userId: session.user.id, status: "PENDING" },
-      include: { items: true },
+      include: { items: true, coupon: true },
+    });
+
+    const coupons = await prisma.coupon.findMany({
+      where: {
+        userId: session.user.id,
+        expiresAt: { gt: new Date() }, // Not expired
+        uses: { lt: prisma.coupon.fields.maxUses }, // Uses < maxUses
+      },
     });
 
     if (order) {
@@ -129,7 +138,7 @@ async function CartContent({ session }: { session: any }) {
         data: {
           userId: session.user.id,
           totalPrice: totalWithDelivery,
-          status: "PENDING",
+          status: "order submitted",
           shippingName: "",
           shippingEmail: "",
           shippingAddress: "",
@@ -156,6 +165,23 @@ async function CartContent({ session }: { session: any }) {
           stripeSessionId: true,
           shippingAddressId: true,
           items: true,
+          couponId: true,
+          discountApplied: true,
+          coupon: {
+            select: {
+              id: true,
+              createdAt: true,
+              updatedAt: true,
+              userId: true,
+              code: true,
+              discountType: true,
+              discountValue: true,
+              minOrderValue: true,
+              maxUses: true,
+              uses: true,
+              expiresAt: true,
+            },
+          },
         },
       });
     }
@@ -178,7 +204,6 @@ async function CartContent({ session }: { session: any }) {
                   />
                 </Link>
               </div>
-
               <div className="flex-1 ml-3">
                 <div className="flex items-center justify-between">
                   <p className="text-lg font-medium truncate max-w-[170px]">
@@ -188,7 +213,6 @@ async function CartContent({ session }: { session: any }) {
                     <RemoveFromCartButton cartItemId={item.id} />
                   </Suspense>
                 </div>
-
                 <div className="flex items-center mt-1">
                   <p className="text-red-500 font-semibold">R{item.product.price}</p>
                   {item.size && (
@@ -197,7 +221,6 @@ async function CartContent({ session }: { session: any }) {
                     </span>
                   )}
                 </div>
-
                 <div className="flex justify-between items-center mt-0">
                   <Suspense fallback={<span>Checking stock...</span>}>
                     <AvailableStock sizeId={item.sizeId} />
@@ -217,7 +240,14 @@ async function CartContent({ session }: { session: any }) {
 
         <div className="mt-6">
           <Suspense fallback={<p>Calculating total...</p>}>
-            <CartTotal total={totalWithDelivery} />
+            <CartTotal total={totalWithDelivery} coupon={order.coupon} />
+          </Suspense>
+          <Suspense fallback={<div>Loading coupon input...</div>}>
+            <CouponInput
+              orderId={order.id}
+              userId={session.user.id}
+              initialTotal={totalWithDelivery}
+            />
           </Suspense>
           {order && (
             <Suspense fallback={<button className="bg-gray-500 text-white px-4 py-2">Loading...</button>}>
@@ -226,6 +256,12 @@ async function CartContent({ session }: { session: any }) {
           )}
         </div>
 
+        <CouponSection
+          coupons={coupons.map((coupon) => ({
+            ...coupon,
+            expiresAt: coupon.expiresAt.toISOString(),
+          }))}
+        />
         <BottomNavWrapper cartItems={cart.items} />
       </div>
     );

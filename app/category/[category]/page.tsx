@@ -1,3 +1,4 @@
+// app/category/[category]/page.tsx
 import { prisma } from "../../lib/db/prisma";
 import CategoryHeader from "../../components/CategoryHeader";
 import HeroSection from "../../components/HeroSection";
@@ -10,6 +11,7 @@ import CategoryTypes from "../../components/CategoryTypes";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../api/auth/[...nextauth]/options";
 import StandaloneHeader from "@/components/StandaloneHeader";
+import { storeCategoryView } from "@/utils/cookies";
 
 const ProductList = dynamic(() => import("../../components/ProductList"));
 
@@ -25,9 +27,8 @@ export async function generateMetadata({ params }: { params: Promise<CategoryPag
   };
 }
 
-export default async function CategoryPage({ params }: { params: Promise<CategoryPageParams> }) {
-  const { category } = await params;
-
+// Server-side component
+async function CategoryPageServer({ category }: CategoryPageParams) {
   const products = await prisma.product.findMany({
     where: { category: category.toUpperCase() },
     orderBy: { createdAt: "desc" },
@@ -61,4 +62,16 @@ export default async function CategoryPage({ params }: { params: Promise<Categor
       </Suspense>
     </div>
   );
+}
+
+// Client-side wrapper to track category views
+export default async function CategoryPage({ params }: { params: Promise<CategoryPageParams> }) {
+  const { category } = await params;
+
+  // Client-side effect to store category view
+  if (typeof window !== "undefined") {
+    storeCategoryView(category);
+  }
+
+  return <CategoryPageServer category={category} />;
 }

@@ -13,7 +13,7 @@ const AdminHeader = () => {
       <div className="admin-header-top-row flex justify-between items-center py-2 px-4">
         {/* Logo */}
         <div className="logo flex items-center">
-          <Link href="/" className="text-transparent bg-gradient-to-br from-black to-red-500 bg-clip-text text-2xl font-extrabold tracking-widest uppercase">
+          <Link href="/admin" className="text-transparent bg-gradient-to-br from-black to-red-500 bg-clip-text text-2xl font-extrabold tracking-widest uppercase">
             FLARE Admin
           </Link>
         </div>
