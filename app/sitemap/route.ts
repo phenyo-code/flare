@@ -1,8 +1,7 @@
 import { MetadataRoute } from "next";
-import { PrismaClient } from "@prisma/client";
-import { prisma } from "./lib/db/prisma";
+import { prisma } from "@/lib/db/prisma";
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+export async function GET(): Promise<Response> {
   const baseUrl = "https://flare-shop.vercel.app"; // Change to your domain
 
   // Fetch products dynamically
@@ -13,13 +12,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Fetch categories (if needed)
   const categories = ["ALL", "FOR YOU", "WOMEN", "MEN", "BRANDS", "ACCESSORIES"];
 
-  return [
+  const sitemap: MetadataRoute.Sitemap = [
     { url: `${baseUrl}/`, lastModified: new Date() },
     { url: `${baseUrl}/profile`, lastModified: new Date() },
     { url: `${baseUrl}/about`, lastModified: new Date() },
     { url: `${baseUrl}/contact`, lastModified: new Date() },
     ...categories.map((category) => ({
-      url: `${baseUrl}/category/${category}`,
+      url: `${baseUrl}/category/${category.toLowerCase()}`,
       lastModified: new Date(),
     })),
     ...products.map((product) => ({
@@ -27,4 +26,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: product.updatedAt,
     })),
   ];
+
+  return new Response(
+    new XMLSerializer().serializeToString(
+      new DOMParser().parseFromString(
+        `<?xml version="1.0" encoding="UTF-8"?>\n` +
+          `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
+          sitemap
+            .map(
+              (entry) =>
+                `<url><loc>${entry.url}</loc><lastmod>${entry.lastModified.toString()}</lastmod></url>`
+            )
+            .join("\n") +
+          `\n</urlset>`,
+        "application/xml"
+      )
+    ),
+    {
+      headers: { "Content-Type": "application/xml" },
+    }
+  );
 }
