@@ -12,6 +12,7 @@ export default withAuth(
     if (
       (req.nextUrl.pathname.startsWith('/admin') || 
       req.nextUrl.pathname.startsWith('/products') || 
+      req.nextUrl.pathname.startsWith('/coupons-admin') || 
       req.nextUrl.pathname.startsWith('/orders-admin') || 
       req.nextUrl.pathname.startsWith('/add-product') || 
       req.nextUrl.pathname.startsWith('/update-product')) && 
@@ -28,7 +29,7 @@ export default withAuth(
 );
 
 export const config = { 
-  matcher: ['/admin', '/products', '/orders-admin', '/add-product', '/update-product' ],  // Protect these pages
+  matcher: ['/admin', '/products', '/orders-admin', '/add-product', '/update-product', 'coupons-admin' ],  // Protect these pages
 };
 
 
