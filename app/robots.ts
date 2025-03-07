@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/admin", "/cart", "/profile", "/check-out"],
       },
     ],
-    sitemap: "https://flare-shop.vercel.app/sitemap.xml",
+    sitemap: "https://flare-shop.vercel.app/sitemap.xml", // Link to your sitemap
   };
 }
