@@ -1,3 +1,4 @@
+// app/product/[id]/page.tsx
 import { prisma } from "@/lib/db/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/api/auth/[...nextauth]/options";
@@ -10,7 +11,6 @@ import Reviews from "./Reviews";
 import ImageWrapper from "./ImageWrapper";
 import Horizontal from "@/components/Horizontal";
 import { FaBoxOpen, FaTruck } from "react-icons/fa";
-import PersonalizedProductList from "@/components/PersonalizedProductList";
 import MatchingProducts from "@/components/MatchingProducts";
 
 type ProductPageProps = {
@@ -20,19 +20,18 @@ type ProductPageProps = {
 // Generate metadata for SEO
 export async function generateMetadata({ params }: ProductPageProps) {
   const { id } = await params;
-
   const product = await prisma.product.findUnique({
     where: { id },
-    select: { name: true, category: true, filter: true },
+    select: { name: true, category: true, filter: true, style: true },
   });
 
   return {
     title: product ? `${product.name} - Product Details | FLARE` : "Product Not Found",
     description: product
-      ? `Discover ${product.name} at FLARE. Shop ${product.category} ${product.filter} with competitive prices and free delivery on orders over R1000.`
+      ? `Discover ${product.name} at FLARE. Shop ${product.category} ${product.filter} by ${product.style || "FLARE"} with competitive prices and free delivery on orders over R1000.`
       : "This product does not exist or may have been removed.",
     keywords: product
-      ? `${product.name}, ${product.category}, ${product.filter}, fashion, streetwear, FLARE shop`
+      ? `${product.name}, ${product.category}, ${product.filter}, ${product.style || "FLARE"}, fashion, streetwear, FLARE shop`
       : "product not found",
   };
 }
@@ -43,7 +42,7 @@ export default async function ProductDetails({ params }: ProductPageProps) {
 
   const product = await prisma.product.findUnique({
     where: { id },
-    include: { sizes: true, reviews: true },
+    include: { sizes: true, reviews: { include: { user: true } } }, // Include user for review author
   });
 
   if (!product) {
@@ -55,13 +54,11 @@ export default async function ProductDetails({ params }: ProductPageProps) {
 
   if (session?.user) {
     cart = await prisma.cart.findFirst({ where: { userId: session.user.id } });
-
     if (!cart) {
       cart = await prisma.cart.create({
         data: { userId: session.user.id, createdAt: new Date() },
       });
     }
-
     defaultAddress = await prisma.shippingAddress.findFirst({
       where: { userId: session.user.id, isDefault: true },
     });
@@ -72,10 +69,7 @@ export default async function ProductDetails({ params }: ProductPageProps) {
     : 0;
 
   const relatedProducts = await prisma.product.findMany({
-    where: {
-      filter: product.filter,
-      NOT: { id: product.id },
-    },
+    where: { filter: product.filter, NOT: { id: product.id } },
     take: 5,
   });
 
@@ -85,69 +79,69 @@ export default async function ProductDetails({ params }: ProductPageProps) {
       })
     : null;
 
-  const products = await prisma.product.findMany({
-    orderBy: { createdAt: "desc" },
-  });
-
-  const processedProducts = products.map((product) => ({
-    ...product,
-    Originalprice: product.Originalprice ?? 0,
-  }));
-
-  // JSON-LD for Product Page
+  // Enhanced JSON-LD for rich results (no <head> to avoid hydration issues)
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
     "name": product.name,
     "image": product.images.length > 0 ? product.images : ["/default-product-image.png"],
-    "description": `Explore ${product.name}, a stylish ${product.category} ${product.filter} from FLARE. Available in multiple sizes.`,
+    "description": `Explore ${product.name}, a stylish ${product.category} ${product.filter} from FLARE. Available in multiple sizes with free delivery on orders over R1000.`,
     "sku": product.id,
+    "mpn": product.id, // Manufacturer Part Number, using ID as a fallback
     "brand": {
       "@type": "Brand",
-      "name": "FLARE",
+      "name": product.style || "FLARE", // Use style as brand if available
     },
+    "category": product.category,
     "offers": {
       "@type": "Offer",
       "url": `https://flare-shop.vercel.app/product/${product.id}`,
-      "priceCurrency": "ZAR", // Assuming South African Rand based on "R" in UI
+      "priceCurrency": "ZAR",
       "price": product.price.toString(),
       "priceValidUntil": new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
       "availability": product.sizes.some((size) => size.quantity > 0)
         ? "https://schema.org/InStock"
         : "https://schema.org/OutOfStock",
       "itemCondition": "https://schema.org/NewCondition",
+      ...(product.Originalprice && discount > 0
+        ? {
+            "priceSpecification": {
+              "@type": "PriceSpecification",
+              "price": product.Originalprice.toString(),
+              "priceCurrency": "ZAR",
+              "discount": `${discount.toFixed(0)}%`,
+            },
+          }
+        : {}),
     },
-    "aggregateRating": product.reviews.length > 0
+    ...(product.reviews.length > 0
       ? {
-          "@type": "AggregateRating",
-          "ratingValue": (
-            product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length
-          ).toFixed(1),
-          "reviewCount": product.reviews.length.toString(),
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": (
+              product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length
+            ).toFixed(1),
+            "reviewCount": product.reviews.length,
+          },
+          "review": product.reviews.map((review) => ({
+            "@type": "Review",
+            "author": {
+              "@type": "Person",
+              "name": review.user?.name || "Anonymous", // Use actual user name if available
+            },
+            "datePublished": review.createdAt.toISOString(),
+            "reviewRating": {
+              "@type": "Rating",
+              "ratingValue": review.rating.toString(),
+            },
+            "reviewBody": review.comment || "No comment provided.",
+          })),
         }
-      : undefined,
-    "review": product.reviews.map((review) => ({
-      "@type": "Review",
-      "author": {
-        "@type": "Person",
-        "name": review.userId, // Ideally fetch user name, using ID as placeholder
-      },
-      "datePublished": review.createdAt.toISOString(),
-      "reviewRating": {
-        "@type": "Rating",
-        "ratingValue": review.rating.toString(),
-      },
-      "reviewBody": review.comment,
-    })),
+      : {}),
     "breadcrumb": {
       "@type": "BreadcrumbList",
       "itemListElement": [
-        {
-          "@type": "ListItem",
-          "position": 1,
-          "name": "Home",
-          "item": "https://flare-shop.vercel.app/",
-        },
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://flare-shop.vercel.app/" },
         {
           "@type": "ListItem",
           "position": 2,
@@ -166,12 +160,11 @@ export default async function ProductDetails({ params }: ProductPageProps) {
 
   return (
     <div className="overflow-hidden min-h-screen">
-      
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
-      
+      {/* JSON-LD in body, no <head> */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <SearchHeader placeholder={product ? product.filter : "Search for products..."} />
       <div className="container bg-white mx-auto">
         <div className="flex flex-col lg:flex-row">

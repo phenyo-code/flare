@@ -1,4 +1,4 @@
-// app/api/robots/route.ts (or pages/api/robots.ts)
+// app/api/robots/route.ts
 import { NextResponse } from "next/server";
 
 export async function GET() {
@@ -7,22 +7,23 @@ Allow: /
 Disallow: /admin
 Disallow: /cart
 Disallow: /profile
-Disallow: /checkout  # Fixed typo from /check-out
-Disallow: /api/      # Disallow API endpoints except sitemap
-Allow: /api/sitemap  # Explicitly allow the sitemap endpoint
+Disallow: /checkout
+Disallow: /api/
+Allow: /api/sitemap
+Allow: /api/sitemap-products
 
-# Sitemap
+# Sitemaps
 Sitemap: https://flare-shop.vercel.app/api/sitemap
+Sitemap: https://flare-shop.vercel.app/api/sitemap-products
 
 # Crawl optimization
-Crawl-delay: 10      # Optional: Slows down crawling to reduce server load (in seconds)
+Crawl-delay: 10
 `;
-
   return new NextResponse(robotsContent, {
     status: 200,
     headers: {
       "Content-Type": "text/plain",
-      "Cache-Control": "public, max-age=86400, s-maxage=86400", // Cache for 1 day
+      "Cache-Control": "public, max-age=86400, s-maxage=86400",
     },
   });
 }
