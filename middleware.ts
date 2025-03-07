@@ -29,7 +29,7 @@ export default withAuth(
 );
 
 export const config = { 
-  matcher: ['/admin', '/products', '/orders-admin', '/add-product', '/update-product', 'coupons-admin' ],  // Protect these pages
+  matcher: ['/admin', '/products', '/orders-admin', '/add-product', '/update-product', '/coupons-admin' ],  // Protect these pages
 };
 
 
