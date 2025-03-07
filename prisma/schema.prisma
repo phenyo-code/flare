@@ -23,7 +23,7 @@ model Product {
   CartItem      CartItem[]
   OrderItem     OrderItem[]
   sizes         Size[]     // One product can have multiple sizes
-
+  logo          String?
   style         String?    // Added style field
   type          String?    // Added type field
   matchesWith   String[]   // Array of strings for matching product types

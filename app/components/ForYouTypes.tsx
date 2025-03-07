@@ -17,7 +17,7 @@ interface ProductWithSizes {
   reviews: any[];
   createdAt: Date;
   updatedAt: Date;
-  brandName?: string; 
+  logo: string;
   sizes: { id: string; size: string; quantity: number; measurement: string }[];
   style: string | null; // Adjusted to match schema
   type: string | null;  // Adjusted to match schema

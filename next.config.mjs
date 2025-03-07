@@ -17,6 +17,7 @@ const nextConfig = {
   },
   experimental: {
     serverActions: true, // Ensure this is correctly formatted
+    metadataRoutes: true,
   },
   matcher: ["/product/:path*"],
 };

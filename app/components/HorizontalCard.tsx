@@ -11,7 +11,7 @@ export default function HorintantalCard({ product }: ProductCardProps) {
   const firstImage = product.images[0];
 
   return (
-    <div className="shadow-md rounded-md overflow-hidden w-[150px] flex-shrink-0">
+    <div className=" overflow-hidden w-[150px] flex-shrink-0">
       <ProductLink productId={product.id} filter={product.filter}>
         <div className="w-full h-[180px]">
           <Image

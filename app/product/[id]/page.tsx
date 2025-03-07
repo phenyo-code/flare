@@ -23,14 +23,17 @@ export async function generateMetadata({ params }: ProductPageProps) {
 
   const product = await prisma.product.findUnique({
     where: { id },
-    select: { name: true },
+    select: { name: true, category: true, filter: true },
   });
 
   return {
-    title: product ? `${product.name} - Product Details` : "Product Not Found",
+    title: product ? `${product.name} - Product Details | FLARE` : "Product Not Found",
     description: product
-      ? `Check out the details of ${product.name}. Available in different sizes and prices.`
+      ? `Discover ${product.name} at FLARE. Shop ${product.category} ${product.filter} with competitive prices and free delivery on orders over R1000.`
       : "This product does not exist or may have been removed.",
+    keywords: product
+      ? `${product.name}, ${product.category}, ${product.filter}, fashion, streetwear, FLARE shop`
+      : "product not found",
   };
 }
 
@@ -40,7 +43,7 @@ export default async function ProductDetails({ params }: ProductPageProps) {
 
   const product = await prisma.product.findUnique({
     where: { id },
-    include: { sizes: true },
+    include: { sizes: true, reviews: true },
   });
 
   if (!product) {
@@ -50,7 +53,6 @@ export default async function ProductDetails({ params }: ProductPageProps) {
   let cart = null;
   let defaultAddress = null;
 
-  // Only check user-specific data if the user is logged in
   if (session?.user) {
     cart = await prisma.cart.findFirst({ where: { userId: session.user.id } });
 
@@ -60,23 +62,21 @@ export default async function ProductDetails({ params }: ProductPageProps) {
       });
     }
 
-    // Fetch the default shipping address
     defaultAddress = await prisma.shippingAddress.findFirst({
       where: { userId: session.user.id, isDefault: true },
     });
   }
 
-  // Ensure every product has a default Originalprice
   const discount = product.Originalprice
     ? ((product.Originalprice - product.price) / product.Originalprice) * 100
     : 0;
 
   const relatedProducts = await prisma.product.findMany({
     where: {
-      filter: product.filter, // Assuming you want to show similar products based on the filter
-      NOT: { id: product.id }, // Exclude the current product
+      filter: product.filter,
+      NOT: { id: product.id },
     },
-    take: 5, // Limit to 5 related products (you can adjust this)
+    take: 5,
   });
 
   const user = session?.user
@@ -85,24 +85,93 @@ export default async function ProductDetails({ params }: ProductPageProps) {
       })
     : null;
 
-  const reviews = await prisma.product.findUnique({
-    where: { id },
-    include: { reviews: true },
-  });
-
   const products = await prisma.product.findMany({
-    orderBy: {
-      createdAt: "desc",
-    },
+    orderBy: { createdAt: "desc" },
   });
 
   const processedProducts = products.map((product) => ({
     ...product,
-    Originalprice: product.Originalprice ?? 0, // Default to 0 if null
+    Originalprice: product.Originalprice ?? 0,
   }));
 
+  // JSON-LD for Product Page
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": product.name,
+    "image": product.images.length > 0 ? product.images : ["/default-product-image.png"],
+    "description": `Explore ${product.name}, a stylish ${product.category} ${product.filter} from FLARE. Available in multiple sizes.`,
+    "sku": product.id,
+    "brand": {
+      "@type": "Brand",
+      "name": "FLARE",
+    },
+    "offers": {
+      "@type": "Offer",
+      "url": `https://flare-shop.vercel.app/product/${product.id}`,
+      "priceCurrency": "ZAR", // Assuming South African Rand based on "R" in UI
+      "price": product.price.toString(),
+      "priceValidUntil": new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
+      "availability": product.sizes.some((size) => size.quantity > 0)
+        ? "https://schema.org/InStock"
+        : "https://schema.org/OutOfStock",
+      "itemCondition": "https://schema.org/NewCondition",
+    },
+    "aggregateRating": product.reviews.length > 0
+      ? {
+          "@type": "AggregateRating",
+          "ratingValue": (
+            product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length
+          ).toFixed(1),
+          "reviewCount": product.reviews.length.toString(),
+        }
+      : undefined,
+    "review": product.reviews.map((review) => ({
+      "@type": "Review",
+      "author": {
+        "@type": "Person",
+        "name": review.userId, // Ideally fetch user name, using ID as placeholder
+      },
+      "datePublished": review.createdAt.toISOString(),
+      "reviewRating": {
+        "@type": "Rating",
+        "ratingValue": review.rating.toString(),
+      },
+      "reviewBody": review.comment,
+    })),
+    "breadcrumb": {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://flare-shop.vercel.app/",
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": product.category,
+          "item": `https://flare-shop.vercel.app/category/${product.category.toLowerCase()}`,
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": product.name,
+          "item": `https://flare-shop.vercel.app/product/${product.id}`,
+        },
+      ],
+    },
+  };
+
   return (
-    <div className="overflow-hidden  min-h-screen">
+    <div className="overflow-hidden min-h-screen">
+      
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      
       <SearchHeader placeholder={product ? product.filter : "Search for products..."} />
       <div className="container bg-white mx-auto">
         <div className="flex flex-col lg:flex-row">
@@ -114,12 +183,12 @@ export default async function ProductDetails({ params }: ProductPageProps) {
           {/* Product Details Section */}
           <div className="w-full lg:w-1/2 lg:pl-8 mt-2">
             <h3 className="text-2xl text-red-500 mt-2 ml-4 font-bold">
-              R{product.price} 
+              R{product.price}
             </h3>
 
             {product.Originalprice && discount > 0 && (
-              <p className=" border border-red-300 rounded-md max-w-max font-semibold text-xs sm:text-xs px-2 text-red-400 ml-4 mb-2 uppercase">
-              {discount.toFixed(0)}% Off this {product.filter}
+              <p className="border border-red-300 rounded-md max-w-max font-semibold text-xs sm:text-xs px-2 text-red-400 ml-4 mb-2 uppercase">
+                {discount.toFixed(0)}% Off this {product.filter}
               </p>
             )}
 
@@ -132,17 +201,14 @@ export default async function ProductDetails({ params }: ProductPageProps) {
               </h3>
             </div>
 
-            
-
             <div className="pb-2 mt-4">
               <Sizes productId={product.id} sizes={product.sizes} cartId={cart?.id} />
             </div>
 
-            <span className="w-full block bg-gray-100 h-2"></span> {/* Gray separator */}
+            <span className="w-full block bg-gray-100 h-2"></span>
 
-            {/* Display Default Shipping Address if user is logged in */}
             {session?.user && user && (
-              <div className=" flex p-4 rounded-md  border-t border-gray-100">
+              <div className="flex p-4 rounded-md border-t border-gray-100">
                 <div className="block">
                   <Link href="/profile">
                     <p className="text-sm font-semibold overflow-hidden text-ellipsis whitespace-nowrap mr-6">
@@ -150,21 +216,21 @@ export default async function ProductDetails({ params }: ProductPageProps) {
                     </p>
                   </Link>
                   <div className="flex items-center mt-2">
-                    <FaTruck className="text-gray-600 " />
-                    <p className="text-xs text-gray-400 mx-2">Free delivery on orders over R1000</p>
+                    <FaTruck className="text-gray-600" />
+                    <p className="text-xs text-gray-400 mx-2">
+                      Free delivery on orders over R1000
+                    </p>
                   </div>
-                  <div className=" pb-2 w-full">
-                  <p className="text-xs text-gray-500 ml-6 mt-2">3-7 business days</p>
+                  <div className="pb-2 w-full">
+                    <p className="text-xs text-gray-500 ml-6 mt-2">3-7 business days</p>
                   </div>
-                  <div className="flex items-center mt-2  ">
-                    <FaBoxOpen className="text-gray-600 " />
+                  <div className="flex items-center mt-2">
+                    <FaBoxOpen className="text-gray-600" />
                     <p className="text-xs text-gray-400 mx-2">Return Policy</p>
                   </div>
                 </div>
               </div>
             )}
-
-            
 
             {!session?.user && (
               <div className="text-center mt-10 mb-8">
@@ -179,31 +245,27 @@ export default async function ProductDetails({ params }: ProductPageProps) {
               </div>
             )}
 
-          <span className="w-full block bg-gray-100 h-2"></span> {/* Gray separator */}
+            <span className="w-full block bg-gray-100 h-2"></span>
 
             <p className="text-sm text-gray-600 ml-4 font-medium mb-2 mt-2">Similar</p>
-            <Horizontal products={relatedProducts} /> {/* Pass products to Horizontal */}
+            <Horizontal products={relatedProducts} />
 
-            <span className="w-full block bg-gray-100 h-2"></span> {/* Gray separator */}
+            <span className="w-full block bg-gray-100 h-2"></span>
 
             <div className="border-t border-gray-100 pb-4">
               <Reviews productId={product.id} />
             </div>
 
-            <span className="w-full block bg-gray-100 h-2"></span> {/* Gray separator */}
+            <span className="w-full block bg-gray-100 h-2"></span>
 
             <p className="text-sm text-gray-600 ml-4 font-medium mb-2 mt-2">Matching Styles</p>
             <MatchingProducts productId={product.id} />
             <p className="text-sm text-gray-600 ml-4 font-medium mb-2 mt-2 whitespace-nowrap overflow-hidden text-ellipsis">
-  <span className="mr-4">#Matching</span>
-  <span className="mr-4">#FLARE</span>
-  <span className="mr-4">#{product.filter}</span>
-  <span className="mr-4">#RelatedItems</span>
-</p>
-
-
-            {/* Show login prompt if user is not logged in */}
-            
+              <span className="mr-4">#Matching</span>
+              <span className="mr-4">#FLARE</span>
+              <span className="mr-4">#{product.filter}</span>
+              <span className="mr-4">#RelatedItems</span>
+            </p>
           </div>
         </div>
       </div>

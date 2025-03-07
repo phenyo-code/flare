@@ -5,9 +5,15 @@ import { useRouter, useSearchParams } from "next/navigation";
 import ProductList from "@/components/ProductList";
 import { FiSearch } from "react-icons/fi";
 import { IoIosArrowBack } from "react-icons/io";
-import { storeUserSearch, getCookie } from "@/utils/cookies";
+import { storeUserSearch, getCookie, storeUserInteraction } from "@/utils/cookies";
 import BottomNavWrapper from "@/components/BottomNavWrapper";
 import { useSession } from "next-auth/react";
+import { useEffectOnce } from "@/utils/hooks"; // Custom hook to run once on client mount
+
+interface SearchHistoryItem {
+  query: string;
+  timestamp: number; // Matches your cookie structure
+}
 
 interface ProductWithSizes {
   id: string;
@@ -24,6 +30,7 @@ interface ProductWithSizes {
   sizes: { id: string; size: string; quantity: number; measurement: string }[];
   style: string;
   type: string;
+  logo: string;
   matchesWith: string[];
 }
 
@@ -45,7 +52,9 @@ function SearchContent() {
   const [initialLoad, setInitialLoad] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
   const popularSearches = ["Dress", "T-shirt", "Vintage", "Jacket", "Cargo"];
-  const recentSearches = getCookie("user_searches") ? JSON.parse(getCookie("user_searches")!) : [];
+  const recentSearches: SearchHistoryItem[] = getCookie("user_searches")
+    ? JSON.parse(getCookie("user_searches")!)
+    : [];
   const [hasScrolled, setHasScrolled] = useState(false);
   const [debouncedQuery, setDebouncedQuery] = useState(query);
   const [cartId, setCartId] = useState<string | undefined>(undefined);
@@ -80,6 +89,7 @@ function SearchContent() {
         setHasScrolled(true);
         if (debouncedQuery && debouncedQuery.trim() !== "") {
           storeUserSearch(debouncedQuery);
+          storeUserInteraction(); // Track interaction on scroll
         }
       }
     };
@@ -90,7 +100,15 @@ function SearchContent() {
   async function fetchProducts(query: string) {
     setLoading(true);
     try {
-      const res = await fetch(`/api/search?query=${query}`);
+      const res = await fetch(`/api/search?query=${encodeURIComponent(query)}`);
+
+      if (!res.ok) {
+        console.error("Error fetching products:", res.statusText);
+        const text = await res.text(); // Log the error response
+        console.log(text);
+        return;
+      }
+
       const data: ProductWithSizes[] = await res.json();
       setProducts(data);
     } catch (error) {
@@ -104,16 +122,96 @@ function SearchContent() {
     e.preventDefault();
     if (query.trim() !== "") {
       storeUserSearch(query);
-      router.push(`/search?query=${query}`);
+      storeUserInteraction(); // Track interaction on search
+      router.push(`/search?query=${encodeURIComponent(query)}`);
     }
   }
 
   function handlePopularSearch(search: string) {
     setQuery(search);
+    storeUserInteraction(); // Track interaction on popular search click
   }
+
+  // JSON-LD for Search Results Page
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SearchResultsPage",
+    "name": `Search Results for "${query}"`,
+    "description": query
+      ? `Find ${query} products at FLARE. Shop trendy fashion and apparel with free delivery on orders over R1000.`
+      : "Search for trendy fashion and apparel at FLARE.",
+    "url": `https://flare-shop.vercel.app/search?query=${encodeURIComponent(query || "")}`,
+    "publisher": {
+      "@type": "Organization",
+      "name": "FLARE",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://flare-shop.vercel.app/logo.png",
+      },
+    },
+    "breadcrumb": {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://flare-shop.vercel.app/",
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Search Results",
+          "item": `https://flare-shop.vercel.app/search?query=${encodeURIComponent(query || "")}`,
+        },
+      ],
+    },
+    ...(query && products.length > 0
+      ? {
+          "mainEntity": {
+            "@type": "ItemList",
+            "name": `Products matching "${query}"`,
+            "itemListElement": products.slice(0, 10).map((product, index) => ({
+              "@type": "Product",
+              "position": index + 1,
+              "name": product.name,
+              "url": `https://flare-shop.vercel.app/product/${product.id}`,
+              "image": product.images[0] || "/default-product-image.png",
+              "description": `Stylish ${product.category} ${product.filter} from FLARE`,
+              "offers": {
+                "@type": "Offer",
+                "price": product.price.toString(),
+                "priceCurrency": "ZAR",
+                "availability": product.sizes.some((size) => size.quantity > 0)
+                  ? "https://schema.org/InStock"
+                  : "https://schema.org/OutOfStock",
+              },
+            })),
+          },
+        }
+      : {}),
+  };
+
+  // Use custom hook to run the effect once after mount to update metadata
+  useEffectOnce(() => {
+    document.title = query ? `Search Results for "${query}" | FLARE` : "Search | FLARE";
+    const metaDescription = query
+      ? `Find ${query} products at FLARE. Shop trendy fashion and apparel with free delivery on orders over R1000.`
+      : "Search for trendy fashion and apparel at FLARE.";
+
+    const metaTag = document.querySelector('meta[name="description"]') as HTMLMetaElement;
+    if (metaTag) {
+      metaTag.content = metaDescription;
+    }
+  });
 
   return (
     <div className="container mx-auto p-4">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       <div className="fixed top-0 left-0 w-full z-50 flex items-center gap-2 bg-white p-2">
         <IoIosArrowBack
           onClick={() => router.back()}
@@ -136,22 +234,24 @@ function SearchContent() {
           </button>
         </form>
       </div>
+
       {recentSearches.length > 0 && !query && (
         <div className="mt-14 pb-4">
           <h3 className="text-xl font-bold mt-6 mb-4">Recently Searched</h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-            {recentSearches.map((search: string, index: number) => (
+            {recentSearches.map((search, index) => (
               <button
                 key={index}
-                onClick={() => handlePopularSearch(search)}
+                onClick={() => handlePopularSearch(search.query)}
                 className="bg-gray-200 p-2 text-xs font-medium text-gray-500 hover:bg-gray-300 transition"
               >
-                {search}
+                {search.query}
               </button>
             ))}
           </div>
         </div>
       )}
+
       {query === "" && (
         <div className={`mt-12 ${recentSearches.length === 0 ? "mt-14" : ""} pb-60`}>
           <h4 className="text-xl font-bold mt-12 mb-4">Popular Searches</h4>
@@ -168,13 +268,14 @@ function SearchContent() {
           </div>
         </div>
       )}
+
       {query && (
         <div className="mt-14">
           <h3 className="text-xl font-bold mt-6 mb-6">Search Results</h3>
-          {loading && <p>Loading...</p>}
-          <ProductList products={products} cartId={cartId} />
+          {loading ? <p>Loading...</p> : <ProductList products={products} cartId={cartId} />}
         </div>
       )}
+
       <BottomNavWrapper cartItems={products.slice(0, 5)} />
     </div>
   );

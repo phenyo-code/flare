@@ -7,19 +7,20 @@ import Link from "next/link";
 
 interface Product {
   id: string;
-  name: string;
-  price: number;
-  Originalprice?: number;
-  category: string;
-  filter: string;
-  images: string[];
-  isRecommended: boolean;
-  reviews?: any[]; // Added from schema
-  createdAt: Date; // Added from schema
-  updatedAt: Date; // Added from schema
-  style?: string;
-  type?: string;
-  matchesWith?: string[]; // Added from schema
+  name: string; // Required
+  price: number; // Required
+  Originalprice?: number | null; // Optional, nullable per schema
+  category: string; // Required
+  filter: string; // Required
+  images: string[]; // Required
+  isRecommended: boolean; // Required
+  reviews?: any[] | null; // Optional, nullable
+  createdAt: Date; // Required
+  updatedAt: Date; // Required
+  style?: string | null; // Optional, nullable per schema
+  type?: string | null; // Optional, nullable per schema
+  matchesWith?: string[] | null; // Optional, nullable
+  logo?: string | null; // Added from schema, optional
 }
 
 interface HeroSectionProps {
@@ -32,70 +33,36 @@ export default function ForYouHero({ initialProduct, allProducts }: HeroSectionP
 
   useEffect(() => {
     const viewedFiltersCookie = getCookie("user_product_views");
-    const searchedProductsCookie = getCookie("user_searches");
-    const viewedCategoriesCookie = getCookie("user_category_views");
 
-    // Parse cookie data
-    const viewedFilters: { filter: string; timestamp: number }[] = viewedFiltersCookie
+    // Parse viewed products cookie (expecting [{ filter: string, timestamp: number }])
+    const viewedProducts: { filter: string; timestamp: number }[] = viewedFiltersCookie
       ? JSON.parse(viewedFiltersCookie)
       : [];
-    const searchTerms: { query: string; timestamp: number }[] = searchedProductsCookie
-      ? JSON.parse(searchedProductsCookie)
-      : [];
-    const viewedCategories: { category: string; timestamp: number }[] = viewedCategoriesCookie
-      ? JSON.parse(viewedCategoriesCookie)
-      : [];
 
-    // Infer gender based on total views
-    const inferredGender = inferGenderFromCategoryViews(viewedCategories);
-
-    // Filter products by inferred gender
-    let filteredProducts = allProducts;
-    if (inferredGender === "WOMEN" || inferredGender === "MEN") {
-      filteredProducts = allProducts.filter(
-        (product) => product.category.toUpperCase() === inferredGender
-      );
+    // If no viewed products, use initialProduct
+    if (viewedProducts.length === 0) {
+      setHeroProduct(initialProduct);
+      return;
     }
 
-    // Scoring system to choose hero product
-    const productScores = new Map<string, number>();
-    const now = Date.now();
-    const decayFactor = 7 * 24 * 60 * 60 * 1000; // 7-day decay
+    // Find the most recently viewed product
+    const latestView = viewedProducts.reduce((latest, current) =>
+      current.timestamp > latest.timestamp ? current : latest
+    );
 
-    // Score based on viewed filters (weight: 1.5)
-    viewedFilters.forEach((view) => {
-      const weight = 1.5 + Math.max(0, 1 - (now - view.timestamp) / decayFactor);
-      filteredProducts.forEach((product) => {
-        if (product.filter.toLowerCase().includes(view.filter.toLowerCase())) {
-          productScores.set(product.id, (productScores.get(product.id) || 0) + weight);
-        }
-      });
-    });
-
-    // Score based on search terms (weight: 2)
-    searchTerms.forEach((term) => {
-      const weight = 2 + Math.max(0, 1 - (now - term.timestamp) / decayFactor);
-      filteredProducts.forEach((product) => {
-        if (product.name.toLowerCase().includes(term.query.toLowerCase())) {
-          productScores.set(product.id, (productScores.get(product.id) || 0) + weight);
-        }
-      });
-    });
-
-    // Select the highest-scored product, or fall back to initialProduct
-    const selectedProduct = filteredProducts
-      .map((product) => ({
-        product,
-        score: productScores.get(product.id) || (product.isRecommended ? 0.5 : 0), // Fixed typo: 'jurado' → 'score'
-      }))
-      .sort((a, b) => b.score - a.score || b.product.createdAt.getTime() - a.product.createdAt.getTime())[0]?.product ||
-      initialProduct;
+    // Match the latest viewed filter to a product in allProducts
+    const selectedProduct = allProducts.find(
+      (product) =>
+        product.filter &&
+        latestView.filter &&
+        product.filter.toLowerCase() === latestView.filter.toLowerCase()
+    ) || initialProduct;
 
     setHeroProduct(selectedProduct);
   }, [initialProduct, allProducts]);
 
   if (!heroProduct) {
-    return <p>No product available for personalization.</p>;
+    return <p>No product available to display.</p>;
   }
 
   const firstImage = heroProduct.images[0];
@@ -129,22 +96,4 @@ export default function ForYouHero({ initialProduct, allProducts }: HeroSectionP
       </div>
     </div>
   );
-}
-
-// Gender inference function
-function inferGenderFromCategoryViews(viewedCategories: { category: string; timestamp: number }[]): "WOMEN" | "MEN" | "UNKNOWN" {
-  if (viewedCategories.length === 0) {
-    return "UNKNOWN";
-  }
-
-  const categoryCounts = viewedCategories.reduce(
-    (acc: { WOMEN: number; MEN: number }, view) => {
-      if (view.category === "WOMEN") acc.WOMEN += 1;
-      if (view.category === "MEN") acc.MEN += 1;
-      return acc;
-    },
-    { WOMEN: 0, MEN: 0 }
-  );
-
-  return categoryCounts.WOMEN > categoryCounts.MEN ? "WOMEN" : categoryCounts.MEN > categoryCounts.WOMEN ? "MEN" : "UNKNOWN";
 }

@@ -9,12 +9,17 @@ export async function GET(req: Request) {
     return NextResponse.json([]);
   }
 
-  const products = await prisma.product.findMany({
-    where: {
-      name: { contains: query, mode: "insensitive" },
-    },
-    include: { sizes: true },
-  });
+  try {
+    const products = await prisma.product.findMany({
+      where: {
+        name: { contains: query, mode: "insensitive" },
+      },
+      include: { sizes: true },
+    });
 
-  return NextResponse.json(products);
+    return NextResponse.json(products);
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 });
+  }
 }

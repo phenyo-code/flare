@@ -15,7 +15,7 @@ export default function NotFoundPage() {
     <div className="mb-6">
       <span className="inline-block text-4xl sm:text-5xl md:text-6xl font-bold mb-4 animate-pulse">404</span>
     </div>
-    <p className="text-lg sm:text-xl mb-6 animate-fadeIn">Oops! The page you're looking for cannot be found.</p>
+    <p className="text-lg sm:text-xl mb-6 animate-fadeIn">Oops! The page you&apos;re looking for cannot be found.</p>
 
     <button
       onClick={() => router.push("/")}

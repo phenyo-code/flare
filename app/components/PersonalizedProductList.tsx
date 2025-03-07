@@ -19,9 +19,9 @@ interface ProductWithSizes {
   createdAt: Date;
   updatedAt: Date;
   sizes: { id: string; size: string; quantity: number; measurement: string }[];
-  style: string | null;
-  brandName?: string; // Added from updated schema
-  type: string | null;
+  style: string;
+  type: string;
+  logo: string;
   matchesWith: string[];
 }
 
@@ -35,17 +35,13 @@ export default function PersonalizedProductList({ allProducts, cartId }: Persona
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const viewedFiltersCookie = getCookie("user_product_views");
-    const searchedProductsCookie = getCookie("user_searches");
+    const viewedFilters = getCookie("user_product_views");
+    const searchedProducts = getCookie("user_searches");
     const viewedCategoriesCookie = getCookie("user_category_views");
 
-    // Parse cookie data with updated structures
-    const viewedFilters: { filter: string; timestamp: number }[] = viewedFiltersCookie
-      ? JSON.parse(viewedFiltersCookie)
-      : [];
-    const searchTerms: { query: string; timestamp: number }[] = searchedProductsCookie
-      ? JSON.parse(searchedProductsCookie)
-      : [];
+    // Parse cookie data with correct types
+    const filters: { filter: string; timestamp: number }[] = viewedFilters ? JSON.parse(viewedFilters) : [];
+    const searchTerms: { query: string; timestamp: number }[] = searchedProducts ? JSON.parse(searchedProducts) : [];
     const viewedCategories: { category: string; timestamp: number }[] = viewedCategoriesCookie
       ? JSON.parse(viewedCategoriesCookie)
       : [];
@@ -54,10 +50,10 @@ export default function PersonalizedProductList({ allProducts, cartId }: Persona
     const inferredGender = inferGenderFromCategoryViews();
 
     // Filter products by inferred gender if WOMEN or MEN, otherwise use all products
-    let filteredProducts = allProducts;
+    let filteredProducts = allProducts.filter((product) => product && product.filter && product.name); // Basic validation
     if (inferredGender === "WOMEN" || inferredGender === "MEN") {
-      filteredProducts = allProducts.filter(
-        (product) => product.category.toUpperCase() === inferredGender
+      filteredProducts = filteredProducts.filter(
+        (product) => product.category?.toUpperCase() === inferredGender
       );
     }
 
@@ -66,24 +62,28 @@ export default function PersonalizedProductList({ allProducts, cartId }: Persona
     const now = Date.now();
     const decayFactor = 7 * 24 * 60 * 60 * 1000; // 7-day decay
 
-    // Score based on viewed filters (weight: 1.5, with recency decay)
-    viewedFilters.forEach((view) => {
-      const weight = 1.5 + Math.max(0, 1 - (now - view.timestamp) / decayFactor);
+    // Score based on viewed filters (weight: 1.5)
+    filters.forEach((view) => {
       filteredProducts.forEach((product) => {
-        if (product.filter.toLowerCase().includes(view.filter.toLowerCase())) {
-          productScores.set(product.id, (productScores.get(product.id) || 0) + weight);
+        if (
+          typeof product.filter === "string" &&
+          typeof view.filter === "string" &&
+          product.filter.toLowerCase().includes(view.filter.toLowerCase())
+        ) {
+          productScores.set(product.id, (productScores.get(product.id) || 0) + 1.5);
         }
       });
     });
 
-    // Score based on search terms (weight: 2, with recency decay)
+    // Score based on search terms (weight: 2)
     searchTerms.forEach((term) => {
-      const weight = 2 + Math.max(0, 1 - (now - term.timestamp) / decayFactor);
       filteredProducts.forEach((product) => {
-        const nameMatch = product.name.toLowerCase().includes(term.query.toLowerCase());
-        const brandMatch = product.brandName?.toLowerCase().includes(term.query.toLowerCase());
-        if (nameMatch || brandMatch) {
-          productScores.set(product.id, (productScores.get(product.id) || 0) + weight);
+        if (
+          typeof product.name === "string" &&
+          typeof term.query === "string" &&
+          product.name.toLowerCase().includes(term.query.toLowerCase())
+        ) {
+          productScores.set(product.id, (productScores.get(product.id) || 0) + 2);
         }
       });
     });
@@ -92,27 +92,7 @@ export default function PersonalizedProductList({ allProducts, cartId }: Persona
     viewedCategories.forEach((view) => {
       const weight = 1 + Math.max(0, 1 - (now - view.timestamp) / decayFactor);
       filteredProducts.forEach((product) => {
-        if (product.category.toUpperCase() === view.category) {
-          productScores.set(product.id, (productScores.get(product.id) || 0) + weight);
-        }
-      });
-    });
-
-    // Score based on brand affinity from viewed products (weight: 1.5)
-    const brandViews = viewedFilters.reduce((acc: Set<string>, view) => {
-      const matchingProduct = filteredProducts.find((p) =>
-        p.filter.toLowerCase().includes(view.filter.toLowerCase())
-      );
-      if (matchingProduct?.brandName) {
-        acc.add(matchingProduct.brandName.toLowerCase());
-      }
-      return acc;
-    }, new Set<string>());
-
-    brandViews.forEach((brand) => {
-      const weight = 1.5; // Static weight for brand affinity
-      filteredProducts.forEach((product) => {
-        if (product.brandName?.toLowerCase() === brand) {
+        if (product.category?.toUpperCase() === view.category) {
           productScores.set(product.id, (productScores.get(product.id) || 0) + weight);
         }
       });
@@ -141,13 +121,13 @@ export default function PersonalizedProductList({ allProducts, cartId }: Persona
       {personalizedProducts.length > 0 ? (
         <ProductList products={personalizedProducts} cartId={cartId} />
       ) : (
-        <InteractionMessage  />
+        <InteractionMessage />
       )}
     </div>
   );
 }
 
-// Gender inference function (unchanged from cookies.ts)
+// Gender inference function
 function inferGenderFromCategoryViews(): "WOMEN" | "MEN" | "UNKNOWN" {
   let viewedCategories: { category: string; timestamp: number }[] = [];
 
@@ -172,5 +152,11 @@ function inferGenderFromCategoryViews(): "WOMEN" | "MEN" | "UNKNOWN" {
     { WOMEN: 0, MEN: 0 }
   );
 
-  return categoryCounts.WOMEN > categoryCounts.MEN ? "WOMEN" : categoryCounts.MEN > categoryCounts.WOMEN ? "MEN" : "UNKNOWN";
+  if (categoryCounts.WOMEN > categoryCounts.MEN) {
+    return "WOMEN";
+  } else if (categoryCounts.MEN > categoryCounts.WOMEN) {
+    return "MEN";
+  } else {
+    return "UNKNOWN";
+  }
 }

@@ -16,4 +16,5 @@ export interface ProductWithSizes {
   brandName?: string;
   type: string | null;
   matchesWith: string[];
+  logo: String;
 }

@@ -10,9 +10,9 @@ export async function AddProduct(formData: FormData) {
   const originalPrice = Number(formData.get("originalPrice") || price);
   const category = formData.get("category")?.toString();
   const filter = formData.get("filter")?.toString();
-  const brandName = formData.get("brandName")?.toString(); // Added brandName
-  const style = formData.get("style")?.toString();
+  const style = formData.get("style")?.toString(); // Used as brandName
   const type = formData.get("type")?.toString();
+  const logo = formData.get("logo")?.toString(); // New logo field
   const matchesWithRaw = formData.get("matchesWith")?.toString();
   const matchesWith = matchesWithRaw ? matchesWithRaw.split(",").map((item) => item.trim()) : [];
 
@@ -23,7 +23,7 @@ export async function AddProduct(formData: FormData) {
     formData.get("image3")?.toString(),
     formData.get("image4")?.toString(),
     formData.get("image5")?.toString(),
-  ].filter(Boolean);
+  ].filter(Boolean) as string[];
 
   // Collecting sizes
   const sizesData = formData.getAll("sizes").map(String); // Ensure it's an array of strings
@@ -33,7 +33,7 @@ export async function AddProduct(formData: FormData) {
     throw new Error("Please fill in all required fields.");
   }
 
-  // Create the product first
+  // Create the product with logo
   const product = await prisma.product.create({
     data: {
       name,
@@ -41,14 +41,15 @@ export async function AddProduct(formData: FormData) {
       Originalprice: originalPrice,
       category,
       filter,
-      style,
+      style, // Used as brandName
       type,
+      logo, // Include logo in product creation
       matchesWith,
       images,
     },
   });
 
-  // Process Sizes (Ensuring proper structure)
+  // Process Sizes
   const sizes = sizesData
     .map((sizeData) => {
       const parts = sizeData.split(":"); // Expecting format "Size:Sold:Quantity:Measurement"
@@ -56,7 +57,6 @@ export async function AddProduct(formData: FormData) {
 
       const [size, sold, quantity, measurement] = parts.map((part) => part.trim());
 
-      // Ensure all required fields are present and valid
       if (!size || isNaN(Number(sold)) || isNaN(Number(quantity)) || !measurement) {
         return null;
       }
@@ -66,12 +66,12 @@ export async function AddProduct(formData: FormData) {
         measurement,
         sold: Number(sold),
         quantity: Number(quantity),
-        productId: product.id, // Linking to the created product
+        productId: product.id,
       };
     })
-    .filter(Boolean); // Remove any invalid entries
+    .filter(Boolean);
 
-  // Insert Sizes (Using createMany correctly)
+  // Insert Sizes
   if (sizes.length > 0) {
     await prisma.size.createMany({
       data: sizes,
