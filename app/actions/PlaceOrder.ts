@@ -7,6 +7,25 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/api/auth/[...nextauth]/options";
 import { generateCouponForOrder } from "./couponUtils";
 
+// Function to generate a unique tracking number starting with "FLARE"
+async function generateUniqueTrackingNumber(): Promise<string> {
+  const prefix = "FLARE";
+  const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase(); // Generates a 6-character random string
+  const trackingNumber = `${prefix}-${randomPart}`; // e.g., "FLARE-7K9P2M"
+
+  // Check if this tracking number already exists
+  const existingOrder = await prisma.order.findFirst({
+    where: { trackingNumber },
+  });
+
+  // If it exists, recursively generate a new one (rare case)
+  if (existingOrder) {
+    return generateUniqueTrackingNumber();
+  }
+
+  return trackingNumber;
+}
+
 export async function PlaceOrder(formData: FormData): Promise<void> {
   const shippingName = formData.get("shippingName")?.toString();
   const shippingEmail = formData.get("shippingEmail")?.toString();
@@ -55,6 +74,9 @@ export async function PlaceOrder(formData: FormData): Promise<void> {
     });
   }
 
+  // Generate a unique tracking number
+  const trackingNumber = await generateUniqueTrackingNumber();
+
   const order = await prisma.order.create({
     data: {
       userId: session.user.id,
@@ -66,6 +88,7 @@ export async function PlaceOrder(formData: FormData): Promise<void> {
       totalPrice,
       couponId,
       discountApplied,
+      trackingNumber, // Add the tracking number here
       items: {
         create: cart.items.map((item) => ({
           productId: item.productId,

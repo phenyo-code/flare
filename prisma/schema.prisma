@@ -97,6 +97,7 @@ model Order {
   couponId          String?        @db.ObjectId // Link to Coupon (general or user-specific)
   coupon            Coupon?        @relation(fields: [couponId], references: [id])
   discountApplied   Int?           @default(0)
+  trackingNumber String?
 
   @@map("orders")
 }

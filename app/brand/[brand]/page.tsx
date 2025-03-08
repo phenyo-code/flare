@@ -1,3 +1,4 @@
+// app/brand/[brand]/page.tsx
 import { prisma } from "@/lib/db/prisma";
 import CategoryHeader from "@/components/CategoryHeader";
 import Header from "@/components/Header";
@@ -20,9 +21,20 @@ export async function generateMetadata({ params }: { params: Promise<BrandPagePa
   const { brand } = await params;
   const capitalizedBrand = brand.charAt(0).toUpperCase() + brand.slice(1).toLowerCase();
   return {
-    title: `${capitalizedBrand} | FLARE`,
-    description: `Explore all ${capitalizedBrand} products at FLARE. Shop trendy ${capitalizedBrand} streetwear and apparel with free delivery on orders over R1000.`,
-    keywords: `${capitalizedBrand}, fashion, streetwear, apparel, FLARE shop, free delivery`,
+    title: `${capitalizedBrand} | FLARE South Africa`,
+    description: `Explore all ${capitalizedBrand} products at FLARE South Africa. Shop trendy ${capitalizedBrand} streetwear and apparel with free delivery on orders over R1000.`,
+    keywords: `${capitalizedBrand}, fashion, streetwear, apparel, FLARE South Africa, free delivery, trendy jackets`,
+    openGraph: {
+      title: `${capitalizedBrand} | FLARE South Africa`,
+      description: `Explore all ${capitalizedBrand} products at FLARE South Africa. Shop trendy ${capitalizedBrand} streetwear and apparel with free delivery on orders over R1000.`,
+      images: ["/opengraph-image.png"],
+      type: "website",
+      url: `https://flare-shop.vercel.app/brand/${brand.toLowerCase()}`,
+    },
+    twitter: {
+      card: "summary_large_image",
+      images: ["/opengraph-image.png"],
+    },
   };
 }
 
@@ -47,19 +59,21 @@ async function BrandPageServer({ brand }: BrandPageParams) {
       })
     : null;
 
-  // JSON-LD for Brand Page
+  // Enhanced JSON-LD for Brand Page
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    "name": `${brand.charAt(0).toUpperCase() + brand.slice(1).toLowerCase()} - FLARE`,
-    "description": `Explore all ${brand} products at FLARE. Shop trendy ${brand} streetwear and apparel with free delivery on orders over R1000.`,
+    "name": `${brand.charAt(0).toUpperCase() + brand.slice(1).toLowerCase()} - FLARE South Africa`,
+    "description": `Explore all ${brand} products at FLARE South Africa. Shop trendy ${brand} streetwear and apparel with free delivery on orders over R1000.`,
     "url": `https://flare-shop.vercel.app/brand/${brand.toLowerCase()}`,
     "publisher": {
       "@type": "Organization",
-      "name": "FLARE",
+      "name": "FLARE South Africa",
       "logo": {
         "@type": "ImageObject",
         "url": "https://flare-shop.vercel.app/logo.png",
+        "width": "512",
+        "height": "512",
       },
     },
     "breadcrumb": {
@@ -88,14 +102,16 @@ async function BrandPageServer({ brand }: BrandPageParams) {
     "mainEntity": {
       "@type": "ItemList",
       "name": `${brand} Products`,
+      "numberOfItems": products.length,
       "itemListElement": products.slice(0, 10).map((product, index) => ({
         "@type": "Product",
         "position": index + 1,
         "name": product.name,
         "url": `https://flare-shop.vercel.app/product/${product.id}`,
         "image": product.images.length > 0 ? product.images[0] : "/default-product-image.png",
-        "description": `Stylish ${product.category} ${product.filter} by ${product.style} from FLARE`,
+        "description": `Stylish ${product.category} ${product.filter} by ${product.style} from FLARE South Africa`,
         "sku": product.id,
+        "mpn": product.id,
         "brand": {
           "@type": "Brand",
           "name": product.style,
@@ -109,31 +125,45 @@ async function BrandPageServer({ brand }: BrandPageParams) {
             ? "https://schema.org/InStock"
             : "https://schema.org/OutOfStock",
           "priceValidUntil": new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          ...(product.Originalprice && product.Originalprice > product.price
+            ? {
+                "priceSpecification": {
+                  "@type": "PriceSpecification",
+                  "price": product.Originalprice.toString(),
+                  "priceCurrency": "ZAR",
+                  "discount": `${(
+                    ((product.Originalprice - product.price) / product.Originalprice) *
+                    100
+                  ).toFixed(0)}%`,
+                },
+              }
+            : {}),
         },
-        "aggregateRating": product.reviews.length > 0
+        ...(product.reviews.length > 0
           ? {
-              "@type": "AggregateRating",
-              "ratingValue": (
-                product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length
-              ).toFixed(1),
-              "reviewCount": product.reviews.length.toString(),
+              "aggregateRating": {
+                "@type": "AggregateRating",
+                "ratingValue": (
+                  product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length
+                ).toFixed(1),
+                "reviewCount": product.reviews.length,
+              },
             }
-          : undefined,
+          : {}),
       })),
     },
   };
 
   return (
     <div>
-      
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
-      
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <FreeDeliveryBanner />
       <StandaloneHeader />
       <Header />
+      <CategoryHeader activeCategory="BRANDS" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center mb-8">
           {logo && (
@@ -159,10 +189,8 @@ async function BrandPageServer({ brand }: BrandPageParams) {
 // Client-side wrapper to track category views
 export default async function BrandPage({ params }: { params: Promise<BrandPageParams> }) {
   const { brand } = await params;
-
   if (typeof window !== "undefined") {
     storeCategoryView("BRANDS");
   }
-
   return <BrandPageServer brand={brand} />;
 }

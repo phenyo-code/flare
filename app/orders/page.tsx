@@ -1,25 +1,23 @@
+// app/orders/page.tsx
 import { prisma } from "../lib/db/prisma";
 import Link from "next/link";
 import SearchHeader from "../components/SearchHeader";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../api/auth/[...nextauth]/options";
+import Image from "next/image";
 
 export default async function OrdersPage() {
-  // Get session to identify the user
   const session = await getServerSession(authOptions);
 
-  // Fetch orders only if the user is logged in
   const orders = session
     ? await prisma.order.findMany({
         where: { userId: session.user.id },
-        orderBy: {
-          createdAt: "desc", // Sort orders by creation date (newest first)
-        },
+        orderBy: { createdAt: "desc" },
         include: {
           items: {
             include: {
-              product: true, // Include product details
-              size: true,    // Include size details for each item
+              product: true,
+              size: true,
             },
           },
         },
@@ -27,118 +25,131 @@ export default async function OrdersPage() {
     : [];
 
   return (
-    <div>
-      <SearchHeader placeholder={"Search products"} /> {/* Always visible */}
+    <div className="min-h-screen bg-gray-50">
+      <SearchHeader placeholder="Search products" />
 
-      {/* Show login prompt if user is not logged in */}
       {!session || !session.user ? (
-        <div className="flex flex-col items-center justify-center min-h-screen">
-          <p className="text-xl text-gray-700 mb-4">You need to log in to view your orders.</p>
+        <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-gray-100 to-gray-200">
+          <p className="text-2xl font-semibold text-gray-800 mb-6 animate-fade-in">
+            Please log in to view your orders
+          </p>
           <Link href="/login">
-            <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-6">
+            <button className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition-all hover:scale-105">
               Login
             </button>
           </Link>
         </div>
       ) : (
-        <div className="container mx-auto mt-6">
-          <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">Your Orders</h2>
+        <div className="container mx-auto px-4 py-8 max-w-5xl">
+          <h2 className="text-4xl font-extrabold text-gray-900 mb-8 text-center bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-gray-800">
+            Your Orders
+          </h2>
 
           {orders.length === 0 ? (
-            <p className="text-center text-gray-600">No orders found. Please make a purchase.</p>
+            <p className="text-center text-gray-600 text-lg animate-fade-in">
+              No orders yet. Start shopping to see your purchases here!
+            </p>
           ) : (
-            orders.map((order) => (
-              <div
-                key={order.id}
-                className="mb-8 p-6 border rounded-lg shadow-sm hover:shadow-lg transition-shadow duration-300"
-              >
-                {/* Order Header */}
-                <div className="flex justify-between items-center mb-4">
-                  <span
-                    className={`px-3 py-1 rounded-md text-white font-semibold ${
-                      order.status === "order submitted"
-                        ? "bg-yellow-500"
-                        : order.status === "preparing"
-                        ? "bg-blue-500"
-                        : order.status === "packaged"
-                        ? "bg-purple-500"
-                        : order.status === "shipped"
-                        ? "bg-green-500"
-                        : order.status === "delivered"
-                        ? "bg-teal-500"
-                        : order.status === "canceled"
-                        ? "bg-red-500"
-                        : "bg-gray-500" // For any other status
-                    }`}
-                  >
-                    {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                  </span>
-                </div>
-
-
-                {/* Order Summary */}
-                <div className="flex justify-between mb-4">
-                  <p className="text-gray-700">Total Price:</p>
-                  <p className="text-xl font-semibold">R{order.totalPrice}</p>
-                </div>
-
-                {/* Order Items */}
-                <div className="mb-4">
-                  <h4 className="font-semibold text-gray-800">Items:</h4>
-                  <ul className="space-y-2">
-                    {order.items.map((item) => (
-                      <li
-                        key={item.productId}
-                        className="flex flex-col sm:flex-row items-center sm:items-start justify-between mb-4 p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300"
+            <div className="space-y-8">
+              {orders.map((order) => (
+                <div
+                  key={order.id}
+                  className="bg-white rounded-xl shadow-md p-6 hover:shadow-xl transition-shadow duration-300 border border-gray-200"
+                >
+                  <div className="flex justify-between items-center mb-6">
+                    <Link href={`/orders/${order.id}`}>
+                      <span
+                        className={`px-4 py-1 rounded-full text-sm font-semibold text-white shadow-sm cursor-pointer hover:opacity-90 transition-opacity ${
+                          order.status === "order submitted"
+                            ? "bg-yellow-500"
+                            : order.status === "preparing"
+                            ? "bg-blue-500"
+                            : order.status === "packaged"
+                            ? "bg-purple-500"
+                            : order.status === "shipped"
+                            ? "bg-green-500"
+                            : order.status === "delivered"
+                            ? "bg-teal-500"
+                            : order.status === "canceled"
+                            ? "bg-red-500"
+                            : "bg-gray-500"
+                        }`}
                       >
-                        {/* Product Image and Link */}
-                        {item.product.images ? (
-                          <Link href={`/product/${item.product.id}`} className="mr-4">
-                            <img
-                              src={item.product.images[0]}
-                              alt={item.product.name}
-                              className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-md"
-                            />
+                        {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                      </span>
+                    </Link>
+                    <p className="text-sm text-gray-500">
+                      Ordered on {new Date(order.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+
+                  <div className="mb-6">
+                    <h4 className="text-lg font-semibold text-gray-800 mb-3">Items</h4>
+                    <div className="flex overflow-x-auto space-x-4 pb-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                      {order.items.map((item) => (
+                        <div
+                          key={item.productId}
+                          className="flex-shrink-0 w-64   p-3  duration-300"
+                        >
+                          <Link href={`/product/${item.product.id}`} className="block">
+                            {item.product.images && item.product.images.length > 0 ? (
+                              <Image
+                                src={item.product.images[0]}
+                                alt={item.product.name}
+                                width={100}
+                        height={130}
+                        className="w-full h-full object-cover opacity-90 hover:opacity-100 transition-opacity duration-200"
+                              />
+                            ) : (
+                              <div className="w-full h-32 bg-gray-200 rounded-md mb-2" />
+                            )}
+                            <p className="text-sm font-medium text-gray-700 truncate">
+                              {item.product.name}
+                            </p>
                           </Link>
-                        ) : (
-                          <div className="w-16 h-16 sm:w-20 sm:h-20 mr-4 bg-gray-200 rounded-md"></div>
-                        )}
-
-                        {/* Product Name, Price, and Size */}
-                        <div className="flex-1 sm:flex-row flex-col">
-                          <span className="text-gray-600 font-semibold text-sm sm:text-base">
-                            {item.product.name}
-                          </span>
-                          <div className="text-gray-600 text-xs sm:text-sm">
+                          <p className="text-xs text-gray-600">
                             {item.quantity} x R{item.price}
-                          </div>
-
-                          {/* Show the size if available */}
+                          </p>
                           {item.size && (
-                            <div className="text-gray-700 mt-1 text-sm">
-                              Size: {item.size.size}
-                            </div>
+                            <p className="text-xs text-gray-500 mt-1">Size: {item.size.size}</p>
                           )}
                         </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                      ))}
+                    </div>
+                  </div>
 
-                {/* Shipping Information */}
-                <div className="">
-                  <div className="flex-1">
-                  <h5 className="font-semibold text-gray-800">Shipping Details</h5>
-                  <p className="text-gray-700">Name: {order.shippingName}</p>
-                  <p className="text-gray-700">Email: {order.shippingEmail}</p>
-                  <p className="text-gray-700">Address: {order.shippingAddress}</p>
-                  {order.shippingPhoneNumber && (
-                    <p className="text-gray-700">Phone Number: {order.shippingPhoneNumber}</p>
-                  )}
+                  <div className="flex justify-between items-center mb-6">
+                    <p className="text-gray-700 font-medium">Total Price:</p>
+                    <p className="text-2xl font-bold text-gray-900">R{order.totalPrice}</p>
+                  </div>
+
+                  <div className="border-t pt-4">
+                    <h5 className="text-lg font-semibold text-gray-800 mb-3">Shipping Details</h5>
+                    <div className="text-gray-700 space-y-1">
+                      <p>
+                        <span className="font-medium">Name:</span> {order.shippingName}
+                      </p>
+                      <p>
+                        <span className="font-medium">Email:</span> {order.shippingEmail}
+                      </p>
+                      <p>
+                        <span className="font-medium">Address:</span> {order.shippingAddress}
+                      </p>
+                      {order.shippingPhoneNumber && (
+                        <p>
+                          <span className="font-medium">Phone:</span> {order.shippingPhoneNumber}
+                        </p>
+                      )}
+                      {order.trackingNumber && (
+                        <p>
+                          <span className="font-medium">Tracking Number:</span> {order.trackingNumber}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
+              ))}
+            </div>
           )}
         </div>
       )}

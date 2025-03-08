@@ -3,6 +3,7 @@ import "./globals.css";
 import { Metadata } from "next";
 import Footer from "./components/Footer";
 import ClientWrapper from "./ClientWrapper";
+import { ToastContainer } from "react-toastify";
 
 export const metadata: Metadata = {
   title: "FLARE | Shop Latest Trends In Fashion",
@@ -86,6 +87,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <ClientWrapper>{children}</ClientWrapper>
+        <ToastContainer position="top-right" autoClose={3000} />
         <Footer />
       </body>
     </html>

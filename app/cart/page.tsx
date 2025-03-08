@@ -142,6 +142,8 @@ async function CartContent({ session }: { session: any }) {
           shippingName: "",
           shippingEmail: "",
           shippingAddress: "",
+          trackingNumber: "",
+          shippingPhoneNumber: "",
           items: {
             create: cart.items.map((item) => ({
               productId: item.productId,
@@ -160,6 +162,7 @@ async function CartContent({ session }: { session: any }) {
           shippingName: true,
           shippingEmail: true,
           shippingPhoneNumber: true,
+          trackingNumber: true,
           status: true,
           totalPrice: true,
           stripeSessionId: true,
