@@ -47,17 +47,7 @@ export default function ShippingForm({ orderData }: ShippingFormProps) {
     <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-semibold text-gray-800">Shipping Details</h2>
-        {!isEditing && (
-          <button
-            onClick={() => {
-              setIsEditing(true);
-              setIsUpdated(false);
-            }}
-            className="text-red-600 hover:text-red-700 font-medium transition-colors duration-200"
-          >
-            Edit Shipping Details
-          </button>
-        )}
+        
       </div>
       <form action={handleSubmit} className="space-y-6">
         <div>
@@ -126,6 +116,17 @@ export default function ShippingForm({ orderData }: ShippingFormProps) {
           />
           <p className="mt-1 text-xs text-gray-500">Tracking number cannot be edited.</p>
         </div>
+        {!isEditing && (
+          <button
+            onClick={() => {
+              setIsEditing(true);
+              setIsUpdated(false);
+            }}
+            className="text-red-600 hover:text-red-700 font-medium transition-colors duration-200"
+          >
+            Edit Shipping Details
+          </button>
+        )}
         {isEditing && (
           <button
             type="submit"
@@ -137,6 +138,7 @@ export default function ShippingForm({ orderData }: ShippingFormProps) {
             {isPending ? "Saving" : isUpdated ? "Updated" : "Save Shipping Details"}
           </button>
         )}
+
       </form>
     </div>
   );

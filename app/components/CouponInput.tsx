@@ -1,45 +1,46 @@
-// components/CouponInput.tsx
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import { applyCoupon } from "@/actions/applyCoupon";
 import { FaSpinner } from "react-icons/fa";
-import { useCartStore } from "../store/cartStore";
+import { useCartStore } from "@/store/cartStore";
+import { toast } from "react-toastify";
+import { applyCoupon } from "@/actions/applyCoupon";
 
 interface CouponInputProps {
-  orderId: string;
   userId: string;
   initialTotal: number;
+  orderId: string; // Ensure this is passed from the parent
 }
 
-export default function CouponInput({ orderId, userId, initialTotal }: CouponInputProps) {
+export default function CouponInput({ userId, initialTotal, orderId }: CouponInputProps) {
   const [couponCode, setCouponCode] = useState("");
   const [isPending, startTransition] = useTransition();
-  const router = useRouter();
   const { setPending, applyCouponDiscount } = useCartStore();
 
   const handleApplyCoupon = () => {
     if (!couponCode) return;
 
-    startTransition(() => {
+    startTransition(async () => {
       setPending(true);
-      applyCoupon(orderId, couponCode, userId)
-        .then((result) => {
-          if (result.success) {
-            applyCouponDiscount(result.discount, result.newTotal); // Update store immediately
-            router.refresh(); // Sync with server
-          } else {
-            console.error(result.error);
-            // Optionally reset UI or show error
-          }
-        })
-        .finally(() => {
-          setTimeout(() => {
-            setPending(false);
-            setCouponCode(""); // Clear input after applying
-          }, 2000); // 2-second delay like quantity updater
-        });
+      try {
+        console.log("Applying coupon with orderId:", orderId); // Debug log
+        const result = await applyCoupon(orderId, couponCode.toUpperCase(), userId);
+
+        if (!result.success) {
+          throw new Error(result.error || "Failed to apply coupon");
+        }
+
+        applyCouponDiscount(result.discount, result.newTotal);
+        toast.success("Coupon applied successfully!");
+      } catch (error) {
+        console.error("Coupon apply error:", error);
+        toast.error(error instanceof Error ? error.message : "Failed to apply coupon");
+      } finally {
+        setTimeout(() => {
+          setPending(false);
+          setCouponCode("");
+        }, 2000);
+      }
     });
   };
 

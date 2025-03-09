@@ -35,7 +35,7 @@ export default async function OrderSuccessPage({
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-200">
         <Header />
-        <div className="max-w-md mt-16 mx-auto p-6 bg-white shadow-md rounded-lg">
+        <div className="max-w-md mt-16 mx-auto bg-white shadow-md rounded-lg">
           <h2 className="text-2xl font-semibold mb-4 text-center text-gray-800">Order Success</h2>
           <p className="mb-4 p-3 font-medium text-center text-red-600 bg-red-100 rounded-md">
             No recent order found. Please try again or contact support.

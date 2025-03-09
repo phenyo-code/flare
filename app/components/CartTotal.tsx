@@ -78,7 +78,7 @@ export default function CartTotal({ total, coupon }: CartTotalProps) {
     }, duration / steps);
 
     return () => clearInterval(animate);
-  }, [total, cartItems, isUpdating, coupon, storeCouponDiscount, storeFinalTotal]);
+  }, [total, cartItems, isUpdating, coupon, storeCouponDiscount, storeFinalTotal, finalTotal]);
 
   return (
     <div className="mt-6 flex flex-col items-end">

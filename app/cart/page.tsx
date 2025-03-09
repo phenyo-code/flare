@@ -1,19 +1,18 @@
 // app/cart/page.tsx
-import { prisma } from "../lib/db/prisma";
+import { prisma } from "@/lib/db/prisma";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../api/auth/[...nextauth]/options";
-import SearchHeader from "../components/SearchHeader";
+import { authOptions } from "@/api/auth/[...nextauth]/options";
+import SearchHeader from "@/components/SearchHeader";
 import { Suspense } from "react";
 import BottomNavWrapper from "@/components/BottomNavWrapper";
 import CouponSection from "@/components/CouponSection";
 import CouponInput from "@/components/CouponInput";
 
-const RemoveFromCartButton = dynamic(() => import("../product/[id]/RemoveFromCartButton"));
+const RemoveFromCartButton = dynamic(() => import("@/product/[id]/RemoveFromCartButton"));
 const CartTotal = dynamic(() => import("@/components/CartTotal"));
-const CheckoutButton = dynamic(() => import("./CheckOutButton"));
 const CartQuantityUpdater = dynamic(() => import("./CartQuantityUpdater"));
 const AvailableStock = dynamic(() => import("@/components/AvailableStock"));
 
@@ -90,104 +89,13 @@ async function CartContent({ session }: { session: any }) {
     const deliveryFee = updatedTotalPrice < 1000 ? 100 : 0;
     const totalWithDelivery = updatedTotalPrice + deliveryFee;
 
-    let order = await prisma.order.findFirst({
-      where: { userId: session.user.id, status: "PENDING" },
-      include: { items: true, coupon: true },
-    });
-
     const coupons = await prisma.coupon.findMany({
       where: {
         userId: session.user.id,
-        expiresAt: { gt: new Date() }, // Not expired
-        uses: { lt: prisma.coupon.fields.maxUses }, // Uses < maxUses
+        expiresAt: { gt: new Date() },
+        uses: { lt: prisma.coupon.fields.maxUses },
       },
     });
-
-    if (order) {
-      const cartItemsMap = new Map(cart.items.map((item) => [item.id, item]));
-      const orderItemsMap = new Map(order.items.map((item) => [item.id, item]));
-
-      const itemsNeedUpdate = cart.items.some((cartItem) => {
-        const orderItem = orderItemsMap.get(cartItem.id);
-        return (
-          !orderItem ||
-          orderItem.quantity !== cartItem.quantity ||
-          orderItem.price !== cartItem.product.price
-        );
-      });
-
-      if (itemsNeedUpdate || order.totalPrice !== totalWithDelivery) {
-        await prisma.order.update({
-          where: { id: order.id },
-          data: {
-            totalPrice: totalWithDelivery,
-            items: {
-              deleteMany: {},
-              create: cart.items.map((item) => ({
-                productId: item.productId,
-                sizeId: item.sizeId,
-                quantity: item.quantity,
-                price: item.product.price,
-              })),
-            },
-          },
-        });
-      }
-    } else {
-      order = await prisma.order.create({
-        data: {
-          userId: session.user.id,
-          totalPrice: totalWithDelivery,
-          status: "order submitted",
-          shippingName: "",
-          shippingEmail: "",
-          shippingAddress: "",
-          trackingNumber: "",
-          shippingPhoneNumber: "",
-          items: {
-            create: cart.items.map((item) => ({
-              productId: item.productId,
-              sizeId: item.sizeId,
-              quantity: item.quantity,
-              price: item.product.price,
-            })),
-          },
-        },
-        select: {
-          id: true,
-          createdAt: true,
-          updatedAt: true,
-          userId: true,
-          shippingAddress: true,
-          shippingName: true,
-          shippingEmail: true,
-          shippingPhoneNumber: true,
-          trackingNumber: true,
-          status: true,
-          totalPrice: true,
-          stripeSessionId: true,
-          shippingAddressId: true,
-          items: true,
-          couponId: true,
-          discountApplied: true,
-          coupon: {
-            select: {
-              id: true,
-              createdAt: true,
-              updatedAt: true,
-              userId: true,
-              code: true,
-              discountType: true,
-              discountValue: true,
-              minOrderValue: true,
-              maxUses: true,
-              uses: true,
-              expiresAt: true,
-            },
-          },
-        },
-      });
-    }
 
     return (
       <div className="container mx-auto p-6">
@@ -243,20 +151,16 @@ async function CartContent({ session }: { session: any }) {
 
         <div className="mt-6">
           <Suspense fallback={<p>Calculating total...</p>}>
-            <CartTotal total={totalWithDelivery} coupon={order.coupon} />
+            <CartTotal total={totalWithDelivery} coupon={null} />
           </Suspense>
           <Suspense fallback={<div>Loading coupon input...</div>}>
-            <CouponInput
-              orderId={order.id}
-              userId={session.user.id}
-              initialTotal={totalWithDelivery}
-            />
+            <CouponInput userId={session.user.id} initialTotal={totalWithDelivery} orderId={""} />
           </Suspense>
-          {order && (
-            <Suspense fallback={<button className="bg-gray-500 text-white px-4 py-2">Loading...</button>}>
-              <CheckoutButton orderId={order.id} />
-            </Suspense>
-          )}
+          <Link href="/order-confirmation">
+            <button className="w-full bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-6 mt-4 rounded-md">
+              CheckOut
+            </button>
+          </Link>
         </div>
 
         <CouponSection
@@ -269,7 +173,7 @@ async function CartContent({ session }: { session: any }) {
       </div>
     );
   } catch (error) {
-    console.error("Error fetching cart or order data", error);
+    console.error("Error fetching cart data", error);
     return (
       <div>
         <p className="text-red-500 text-center mt-6">Error loading cart.</p>
