@@ -1,118 +1,37 @@
-"use client";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/api/auth/[...nextauth]/options";
+import { prisma } from "@/lib/db/prisma";
+import { redirect } from "next/navigation";
+import CheckoutContent from "./CheckoutContent";
 
-import { Suspense } from "react";
-import { useSearchParams } from "next/navigation";
-import { PlaceOrder } from "../actions/PlaceOrder"; // Importing server action
-import CheckoutButton from "./PlaceOrderButton";
+export default async function CheckoutPage({ searchParams }) {
+  const session = await getServerSession(authOptions);
+  if (!session || !session.user) redirect("/auth/signin");
 
-export default function CheckoutPage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <CheckoutContent />
-    </Suspense>
-  );
-}
+  const success = searchParams?.success === "true";
+  const orderId = searchParams?.orderId;
 
-function CheckoutContent() {
-  const searchParams = useSearchParams();
-  const success = searchParams?.get("success");
-  const status = searchParams?.get("status");
+  if (!success || !orderId) redirect("/cart");
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    const formData = new FormData(event.target as HTMLFormElement);
+  const latestOrder = await prisma.order.findFirst({
+    where: { userId: session.user.id, status: "order submitted" },
+    orderBy: { createdAt: "desc" },
+  });
 
-    // Call the PlaceOrder server action
-    try {
-      await PlaceOrder(formData);
-      // On success, redirect with query params
-      window.location.href = "/order-success?status=completed&success=true";
-    } catch (error) {
-      console.error("Order placement failed", error);
-      // Show an error message to the user
-    }
-  };
+  const shippingAddress = latestOrder
+    ? {
+        shippingName: latestOrder.shippingName,
+        shippingEmail: latestOrder.shippingEmail,
+        shippingAddress: latestOrder.shippingAddress,
+        shippingPhoneNumber: latestOrder.shippingPhoneNumber,
+      }
+    : null;
 
   return (
-    <div>
-      <div className="max-w-lg mt-10 mx-auto p-6 bg-white shadow-md rounded-lg">
-        <h2 className="text-2xl font-bold mb-4">Complete Checkout</h2>
-
-        {/* Display success message */}
-        {success && (
-          <p className="mb-4 p-2 text-center text-white bg-green-500 rounded-md">
-            Your Payment Was Succcessful !
-          </p>
-        )}
-
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label
-              htmlFor="shippingName"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Full Name
-            </label>
-            <input
-              type="text"
-              id="shippingName"
-              name="shippingName"
-              className="w-full p-2 mt-1 border border-gray-300 rounded-md"
-              required
-            />
-          </div>
-
-          <div className="mb-4">
-            <label
-              htmlFor="shippingEmail"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Email Address
-            </label>
-            <input
-              type="email"
-              id="shippingEmail"
-              name="shippingEmail"
-              className="w-full p-2 mt-1 border border-gray-300 rounded-md"
-              required
-            />
-          </div>
-
-          <div className="mb-4">
-            <label
-              htmlFor="shippingAddress"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Shipping Address
-            </label>
-            <textarea
-              id="shippingAddress"
-              name="shippingAddress"
-              className="w-full p-2 mt-1 border border-gray-300 rounded-md"
-              required
-            />
-          </div>
-
-          {/* New phone number field */}
-          <div className="mb-4">
-            <label
-              htmlFor="shippingPhoneNumber"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Phone Number
-            </label>
-            <input
-              type="text"
-              id="shippingPhoneNumber"
-              name="shippingPhoneNumber"
-              className="w-full p-2 mt-1 border border-gray-300 rounded-md"
-              required
-            />
-          </div>
-
-          <CheckoutButton status={status} />
-        </form>
-      </div>
-    </div>
+    <CheckoutContent
+      shippingAddress={shippingAddress}
+      success={success}
+      orderId={orderId}
+    />
   );
 }

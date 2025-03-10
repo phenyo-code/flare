@@ -3,49 +3,45 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { createOrderAndCheckout } from "@/actions/orderActions";
+import { startCheckout } from "@/actions/startCheckout";
 import { FaCreditCard, FaApple } from "react-icons/fa";
 import { IoIosArrowBack } from "react-icons/io";
 import Image from "next/image";
+import HomeSkeleton from "@/components/HomeSkeleton";
 
-export default function OrderConfirmationForm({ cart, latestOrder, userId }) {
-  const [usePrevious, setUsePrevious] = useState(!!latestOrder);
-  const [shippingDetails, setShippingDetails] = useState({
-    shippingName: latestOrder?.shippingName || "",
-    shippingEmail: latestOrder?.shippingEmail || "",
-    shippingAddress: latestOrder?.shippingAddress || "",
-    shippingPhoneNumber: latestOrder?.shippingPhoneNumber || "",
-  });
+export default function OrderConfirmationForm({ cart, latestOrder, userId, orderId }) {
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = async (formData: FormData) => {
-    if (usePrevious && latestOrder) {
-      formData.set("shippingName", latestOrder.shippingName);
-      formData.set("shippingEmail", latestOrder.shippingEmail);
-      formData.set("shippingAddress", latestOrder.shippingAddress);
-      formData.set("shippingPhoneNumber", latestOrder.shippingPhoneNumber || "");
-    }
+  const isCartValid = cart && Array.isArray(cart.items) && cart.items.length > 0;
 
-    const shippingName = formData.get("shippingName")?.toString();
-    const shippingEmail = formData.get("shippingEmail")?.toString();
-    const shippingAddress = formData.get("shippingAddress")?.toString();
-    const shippingPhoneNumber = formData.get("shippingPhoneNumber")?.toString();
-
-    if (!shippingName || !shippingEmail || !shippingAddress || !shippingPhoneNumber) {
-      toast.error("Please fill in all required shipping details.");
+  const handleSubmit = async () => {
+    if (!isCartValid) {
+      toast.error("Cart is empty or invalid.");
       return;
     }
 
+    setIsLoading(true);
     try {
-      await createOrderAndCheckout(formData);
+      // Assuming orderId is passed from parent or created elsewhere
+      if (!orderId) {
+        throw new Error("No order ID available to start checkout.");
+      }
+      await startCheckout(orderId);
     } catch (err) {
-      toast.error("Failed to proceed to payment. Please try again.");
+      toast.error("Failed to start payment. Please try again.");
       console.error(err);
+      setIsLoading(false);
     }
   };
 
-  // Pricing calculations
-  const subtotal = cart.items.reduce((sum: number, item: any) => sum + item.product.price * item.quantity, 0);
+  if (!isCartValid) return <HomeSkeleton />;
+
+  const subtotal = cart.items.reduce((sum: number, item: any) => {
+    const price = item.product?.price || 0;
+    const quantity = Number.isInteger(item.quantity) && item.quantity >= 0 ? item.quantity : 0;
+    return sum + price * quantity;
+  }, 0);
   let totalPrice = subtotal;
   let tieredDiscountPercentage = 0;
   if (totalPrice >= 3000) tieredDiscountPercentage = 15;
@@ -58,94 +54,47 @@ export default function OrderConfirmationForm({ cart, latestOrder, userId }) {
 
   return (
     <div className="min-h-screen bg-white">
-      <form action={handleSubmit}>
-        {/* Header with Back Button and Title */}
+      <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-red-500 to-orange-500 text-white">
-          <IoIosArrowBack
-            onClick={() => router.back()}
-            className="text-3xl cursor-pointer"
-          />
+          <IoIosArrowBack onClick={() => router.back()} className="text-3xl cursor-pointer" />
           <h2 className="text-xl font-semibold text-center">Order Confirmation</h2>
           <div className="w-20" />
         </div>
 
-        {/* Shipping Details */}
-        <div className="px-6 py-4">
-          <label className="block text-sm  font-semibold text-gray-800 mb-2">Shipping Details</label>
-          {latestOrder && (
+        {/* Latest Shipping Details Preview */}
+        {latestOrder && (
+          <div className="px-6 py-4">
+            <h3 className="text-sm font-semibold text-gray-800 mb-2">Latest Shipping Details</h3>
             <div className="mb-4 p-4 bg-gray-50 border border-gray-100">
-              <h3 className="text-sm font-semibold text-red-500 mb-2">Latest Shipping Details</h3>
               <p className="text-gray-600">
                 <strong>{latestOrder.shippingName} </strong>| {latestOrder.shippingPhoneNumber || "Not provided"}
               </p>
               <p className="text-gray-600 mt-1"><strong>Address:</strong> {latestOrder.shippingAddress}</p>
             </div>
-          )}
-          {latestOrder && (
-            <div className="mb-4">
-              <label className="flex items-center text-sm text-gray-700">
-                <input type="radio" checked={usePrevious} onChange={() => setUsePrevious(true)} className="mr-2 accent-red-500" />
-                Use Previous Shipping Details
-              </label>
-              <label className="flex items-center text-sm mt-2 text-gray-700">
-                <input type="radio" checked={!usePrevious} onChange={() => setUsePrevious(false)} className="mr-2 accent-red-500" />
-                Enter New Shipping Details
-              </label>
-            </div>
-          )}
-          {!usePrevious && (
-            <>
-              <input
-                type="text"
-                name="shippingName"
-                value={shippingDetails.shippingName}
-                onChange={(e) => setShippingDetails({ ...shippingDetails, shippingName: e.target.value })}
-                placeholder="Full Name"
-                className="w-full p-3 border border-gray-200 rounded-lg mb-4 focus:ring-2 focus:ring-red-500"
-                required
-              />
-              <input
-                type="email"
-                name="shippingEmail"
-                value={shippingDetails.shippingEmail}
-                onChange={(e) => setShippingDetails({ ...shippingDetails, shippingEmail: e.target.value })}
-                placeholder="Email"
-                className="w-full p-3 border border-gray-200 rounded-lg mb-4 focus:ring-2 focus:ring-red-500"
-                required
-              />
-              <textarea
-                name="shippingAddress"
-                value={shippingDetails.shippingAddress}
-                onChange={(e) => setShippingDetails({ ...shippingDetails, shippingAddress: e.target.value })}
-                placeholder="Shipping Address"
-                className="w-full p-3 border border-gray-200 rounded-lg mb-4 focus:ring-2 focus:ring-red-500"
-                rows={4}
-                required
-              />
-              <input
-                type="tel"
-                name="shippingPhoneNumber"
-                value={shippingDetails.shippingPhoneNumber}
-                onChange={(e) => setShippingDetails({ ...shippingDetails, shippingPhoneNumber: e.target.value })}
-                placeholder="Phone Number"
-                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-red-500"
-                required
-              />
-            </>
-          )}
-        </div>
+            <p className="text-sm text-gray-500">
+              You will confirm or update your shipping address after payment is successful.
+            </p>
+          </div>
+        )}
+        {!latestOrder && (
+          <div className="px-6 py-4">
+            <p className="text-sm text-gray-500">
+              You will enter your shipping address after payment is successful.
+            </p>
+          </div>
+        )}
 
         <span className="w-full block bg-gray-100 h-2"></span>
 
-        {/* Items in Horizontal Scroll View */}
+        {/* Items */}
         <div className="px-6 py-4">
-          <h3 className="text-sm  font-semibold text-gray-800 mb-2">Items</h3>
+          <h3 className="text-sm font-semibold text-gray-800 mb-2">Items</h3>
           <div className="flex overflow-x-auto space-x-4 pb-4">
             {cart.items.map((item: any) => (
               <div key={item.productId} className="flex-shrink-0 w-[150px] overflow-hidden">
                 <div className="w-full h-[180px] relative">
                   <Image
-                    src={item.product.images[0]} // Assuming images is an array on product
+                    src={item.product.images[0]}
                     alt={item.product.name}
                     width={150}
                     height={180}
@@ -154,10 +103,9 @@ export default function OrderConfirmationForm({ cart, latestOrder, userId }) {
                 </div>
                 <div className="p-4">
                   <p className="text-gray-800 font-medium whitespace-nowrap text-ellipsis">{item.product.name}</p>
-                  <div className="flex items-center mt-1">
-                  <p className="text-gray-500 text-sm">Size: {item.size?.size || "N/A" }  x {item.quantity}</p>
-                  
-                  </div>
+                  <p className="text-gray-500 text-sm">
+                    Size: {item.size?.size || "N/A"} x {item.quantity}
+                  </p>
                   <p className="text-orange-500 font-semibold mt-2">R{(item.product.price * item.quantity).toFixed(2)}</p>
                 </div>
               </div>
@@ -167,9 +115,9 @@ export default function OrderConfirmationForm({ cart, latestOrder, userId }) {
 
         <span className="w-full block bg-gray-100 h-2"></span>
 
-        {/* Delivery Methods and Details */}
+        {/* Delivery Method */}
         <div className="px-6 py-4">
-          <h3 className="text-sm  font-semibold text-gray-800 mb-2">Delivery Method</h3>
+          <h3 className="text-sm font-semibold text-gray-800 mb-2">Delivery Method</h3>
           <p className="text-gray-700 text-sm">Standard Shipping (3-5 business days)</p>
           <p className="text-gray-500 text-sm">
             Cost: {deliveryFee > 0 ? <span className="text-orange-500">R{deliveryFee.toFixed(2)}</span> : <span className="text-green-600">Free (Order over R1000)</span>}
@@ -180,7 +128,7 @@ export default function OrderConfirmationForm({ cart, latestOrder, userId }) {
 
         {/* Payment Options */}
         <div className="px-6 py-4">
-          <h3 className="text-sm  font-semibold text-gray-800 mb-2">Payment Options</h3>
+          <h3 className="text-sm font-semibold text-gray-800 mb-2">Payment Options</h3>
           <div className="flex space-x-4">
             <div className="flex items-center space-x-2 bg-gray-50 p-2 rounded-lg border border-gray-200">
               <FaCreditCard className="text-red-500" size={20} />
@@ -196,9 +144,9 @@ export default function OrderConfirmationForm({ cart, latestOrder, userId }) {
 
         <span className="w-full block bg-gray-100 h-2"></span>
 
-        {/* Price Breakdown */}
+        {/* Order Summary */}
         <div className="px-6 py-4">
-          <h3 className="text-sm  font-semibold text-gray-800 mb-2">Order Summary</h3>
+          <h3 className="text-sm font-semibold text-gray-800 mb-2">Order Summary</h3>
           <div className="space-y-2">
             <div className="flex justify-between">
               <span className="text-gray-600">Original Price:</span>
@@ -229,9 +177,10 @@ export default function OrderConfirmationForm({ cart, latestOrder, userId }) {
         <div className="px-6 py-4">
           <button
             type="submit"
-            className="w-full bg-gradient-to-r from-red-500 to-orange-500 text-white font-bold py-3 px-6 rounded-full hover:from-red-600 hover:to-orange-600 transition-all duration-200"
+            disabled={isLoading}
+            className="w-full bg-gradient-to-r from-red-500 to-orange-500 text-white font-bold py-3 px-6 rounded-full hover:from-red-600 hover:to-orange-600 transition-all duration-200 disabled:bg-gray-400"
           >
-            Place Order
+            {isLoading ? "Processing..." : "Proceed to Payment"}
           </button>
         </div>
       </form>

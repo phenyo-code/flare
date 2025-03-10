@@ -151,10 +151,7 @@ async function CartContent({ session }: { session: any }) {
 
         <div className="mt-6">
           <Suspense fallback={<p>Calculating total...</p>}>
-            <CartTotal total={totalWithDelivery} coupon={null} />
-          </Suspense>
-          <Suspense fallback={<div>Loading coupon input...</div>}>
-            <CouponInput userId={session.user.id} initialTotal={totalWithDelivery} orderId={""} />
+            <CartTotal total={totalWithDelivery} />
           </Suspense>
           <Link href="/order-confirmation">
             <button className="w-full bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-6 mt-4 rounded-md">
@@ -162,13 +159,6 @@ async function CartContent({ session }: { session: any }) {
             </button>
           </Link>
         </div>
-
-        <CouponSection
-          coupons={coupons.map((coupon) => ({
-            ...coupon,
-            expiresAt: coupon.expiresAt.toISOString(),
-          }))}
-        />
         <BottomNavWrapper cartItems={cart.items} />
       </div>
     );

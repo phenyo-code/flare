@@ -1,25 +1,17 @@
-// components/CartTotal.tsx
 "use client";
 
 import { useState, useEffect } from "react";
-import { FaTruck, FaGift, FaTags } from "react-icons/fa";
+import { FaTruck, FaTags } from "react-icons/fa";
 import { useCartStore } from "../store/cartStore";
-
-interface Coupon {
-  discountType: string;
-  discountValue: number;
-}
 
 interface CartTotalProps {
   total: number;
-  coupon: Coupon | null;
 }
 
-export default function CartTotal({ total, coupon }: CartTotalProps) {
+export default function CartTotal({ total }: CartTotalProps) {
   const [finalTotal, setFinalTotal] = useState(total);
   const [tieredDiscount, setTieredDiscount] = useState(0);
-  const [couponDiscount, setCouponDiscount] = useState(0);
-  const { cartItems, isUpdating, couponDiscount: storeCouponDiscount, finalTotal: storeFinalTotal } = useCartStore();
+  const { cartItems, isUpdating, finalTotal: storeFinalTotal } = useCartStore();
   const deliveryFee = 100;
   const freeDeliveryThreshold = 1000;
 
@@ -40,20 +32,6 @@ export default function CartTotal({ total, coupon }: CartTotalProps) {
     newTotal -= tieredDiscountAmount;
     setTieredDiscount(tieredDiscountAmount);
 
-    if (coupon) {
-      const calculatedCouponDiscount =
-        coupon.discountType === "percentage"
-          ? (subtotal * coupon.discountValue) / 100
-          : coupon.discountValue;
-      newTotal -= calculatedCouponDiscount;
-      setCouponDiscount(calculatedCouponDiscount);
-    } else if (storeCouponDiscount > 0) {
-      newTotal -= storeCouponDiscount;
-      setCouponDiscount(storeCouponDiscount);
-    } else {
-      setCouponDiscount(0);
-    }
-
     if (!isUpdating()) {
       setFinalTotal(Math.max(newTotal, 0));
       return;
@@ -61,7 +39,7 @@ export default function CartTotal({ total, coupon }: CartTotalProps) {
 
     const realTimeTotal = cartItems.reduce((sum, item) => sum + item.pricePerItem * item.quantity, 0);
     const startValue = finalTotal;
-    const endValue = storeFinalTotal || realTimeTotal - tieredDiscountAmount - (storeCouponDiscount || 0);
+    const endValue = storeFinalTotal || realTimeTotal - tieredDiscountAmount;
     const duration = 2300;
     const steps = 20;
     const stepValue = (endValue - startValue) / steps;
@@ -78,7 +56,7 @@ export default function CartTotal({ total, coupon }: CartTotalProps) {
     }, duration / steps);
 
     return () => clearInterval(animate);
-  }, [total, cartItems, isUpdating, coupon, storeCouponDiscount, storeFinalTotal, finalTotal]);
+  }, [total, cartItems, isUpdating, storeFinalTotal, finalTotal]);
 
   return (
     <div className="mt-6 flex flex-col items-end">
@@ -98,14 +76,6 @@ export default function CartTotal({ total, coupon }: CartTotalProps) {
           <FaTags className="text-sm text-green-600 mr-2" />
           <p className="text-sm text-green-600 font-semibold">
             Tiered Savings: R{tieredDiscount.toFixed(2)}
-          </p>
-        </div>
-      )}
-      {couponDiscount > 0 && (
-        <div className="flex items-center">
-          <FaGift className="text-sm text-green-600 mr-2" />
-          <p className="text-sm text-green-600 font-semibold">
-            Coupon Savings: R{couponDiscount.toFixed(2)}
           </p>
         </div>
       )}

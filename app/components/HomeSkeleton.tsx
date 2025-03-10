@@ -1,54 +1,58 @@
-import CategoryHeader from "./CategoryHeader";
-import FreeDeliveryBanner from "./FreeDelivery";
-import Header from "./Header";
+"use client";
+
+import { FaFire } from "react-icons/fa";
 
 export default function HomeSkeleton() {
   return (
-    <div>
-      {/* Top Lines */}
-      <FreeDeliveryBanner />
-      <Header />
-      <CategoryHeader activeCategory="" />
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      {/* Background Gradient Glow */}
+      <div className="absolute inset-0 bg-gradient-to-br from-orange-100 via-white to-orange-100 opacity-50 animate-pulse" />
 
-      <div className="container bg-white mx-auto">
-        <div className="flex flex-col lg:flex-row">
-          {/* Image Section Skeleton */}
-          <div className="w-full lg:w-1/2 flex justify-center items-center relative">
-            <div className="w-full h-72 bg-gray-300 animate-pulse rounded-md"></div>
-            <div className="absolute inset-0 flex justify-center items-center">
-              <span className="text-white text-4xl font-bold uppercase">FLARE</span>
-            </div>
-          </div>
+      {/* FLARE Branding with Dynamic Effects */}
+      <div className="relative z-10 mb-12 flex items-center">
+        <FaFire className="text-orange-500 text-5xl animate-[flicker_1.5s_infinite]" />
+        <h1 className="text-4xl font-extrabold text-gray-800 ml-3 tracking-wider animate-[glow_2s_infinite]">
+          FLARE
+        </h1>
+      </div>
 
-          {/* Product Grid Skeleton */}
-          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 mt-4">
-            {Array.from({ length: 10 }).map((_, index) => (
-              <div key={index} className="mb-4 break-inside-avoid">
-                <div className="product-card shadow-md rounded-md overflow-hidden bg-gray-100 animate-pulse">
-                  <div className="relative w-full h-48 bg-gray-100">
-                    <div className="absolute inset-0 flex items-center justify-center text-white font-semibold text-xl bg-gray-300 bg-opacity-50">
-                      FLARE
-                    </div>
-                  </div>
+      {/* Enhanced Bouncing Dots */}
+      <div className="relative z-10 flex justify-center space-x-4">
+        <div
+          className="w-4 h-4 bg-orange-500 rounded-full animate-[bounce_0.6s_infinite] shadow-lg shadow-orange-300"
+          style={{ animationDelay: "0s" }}
+        />
+        <div
+          className="w-4 h-4 bg-orange-500 rounded-full animate-[bounce_0.6s_infinite] shadow-lg shadow-orange-300"
+          style={{ animationDelay: "0.2s" }}
+        />
+        <div
+          className="w-4 h-4 bg-orange-500 rounded-full animate-[bounce_0.6s_infinite] shadow-lg shadow-orange-300"
+          style={{ animationDelay: "0.4s" }}
+        />
+      </div>
 
-                  <div className="p-4 space-y-2">
-                    {/* Title Skeleton */}
-                    <div className="w-full h-2 bg-gray-200"></div>
+      {/* Subtle Ripple Effect */}
+      <div className="absolute bottom-1/2 translate-y-1/2 flex justify-center items-center">
+        <div className="w-24 h-24 bg-orange-200 rounded-full opacity-30 animate-[ripple_2s_infinite] scale-0" />
+        <div className="w-24 h-24 bg-orange-200 rounded-full opacity-30 animate-[ripple_2s_infinite] scale-0" style={{ animationDelay: "0.5s" }} />
+      </div>
 
-                    {/* Price Skeleton */}
-                    <div className="flex items-center">
-                      <div className="w-20 h-2 bg-gray-200"></div>
-                    </div>
-
-                    {/* Discount Skeleton */}
-                    <div className="w-16 h-2 bg-gray-200 mt-1"></div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>  
-      </div>  
+      {/* Custom CSS for Animations */}
+      <style jsx>{`
+        @keyframes flicker {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.7; transform: scale(1.1); }
+        }
+        @keyframes glow {
+          0%, 100% { text-shadow: 0 0 5px rgba(255, 149, 0, 0.5); }
+          50% { text-shadow: 0 0 15px rgba(255, 149, 0, 0.8); }
+        }
+        @keyframes ripple {
+          0% { transform: scale(0); opacity: 0.3; }
+          100% { transform: scale(3); opacity: 0; }
+        }
+      `}</style>
     </div>
   );
 }
