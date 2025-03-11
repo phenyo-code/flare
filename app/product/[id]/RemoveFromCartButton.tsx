@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { removeCartItemAction } from "../../actions/cart";
 import { FaTrash, FaSpinner } from "react-icons/fa"; // Import spinner icon
+import { RiDeleteBin6Line } from "react-icons/ri";
 
 interface RemoveFromCartButtonProps {
     cartItemId: string;
@@ -22,14 +23,14 @@ export default function RemoveFromCartButton({ cartItemId }: RemoveFromCartButto
 
     return (
         <button
-            className="bg-gray-100 text-gray-400 p-2 rounded"
+            className="bg-slate-50 border border-slate-200 text-gray-400 p-1 rounded"
             onClick={handleRemove}
             disabled={isPending}
         >
             {isPending ? (
                 <FaSpinner className="animate-spin text-gray-400" size={16} />
             ) : (
-                <FaTrash size={13} />
+                <RiDeleteBin6Line size={13} />
             )}
         </button>
     );

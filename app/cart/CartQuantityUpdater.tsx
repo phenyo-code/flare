@@ -51,24 +51,24 @@ export default function CartQuantityUpdater({
   };
 
   return (
-    <div className="flex items-center space-x-1 mt-2 border text-gray-400 border-gray-200 rounded max-w-max">
+    <div className="flex items-center space-x-1 mt-2 border text-gray-400 border-slate-200 rounded max-w-max">
       <button
         onClick={() => handleUpdate(quantity - 1)}
         disabled={isPending || quantity <= 1}
-        className={`px-2 py-1 bg-gray-100 text-xs font-semibold ${
-          isPending || quantity <= 1 ? "text-gray-300 cursor-not-allowed" : "text-gray-400 hover:bg-gray-200"
+        className={`px-2 py-1 bg-slate-50 text-xs font-semibold border-r border-slate-200 ${
+          isPending || quantity <= 1 ? "text-gray-300 cursor-not-allowed" : "text-gray-400 hover:bg-slate-200"
         }`}
       >
         -
       </button>
-      <span className="px-1 text-xs flex items-center min-w-[20px] justify-center">
+      <span className="px-1 text-xs flex items-center min-w-[20px] justify-center ">
         {isPending ? <FaSpinner className="animate-spin text-gray-400" size={12} /> : quantity}
       </span>
       <button
         onClick={() => handleUpdate(quantity + 1)}
         disabled={isPending}
-        className={`px-2 py-1 bg-gray-100 text-xs font-semibold ${
-          isPending ? "text-gray-300 cursor-not-allowed" : "text-gray-400 hover:bg-gray-200"
+        className={`px-2 py-1 bg-slate-50  text-xs font-semibold border-l border-slate-200 ${
+          isPending ? "text-gray-300 cursor-not-allowed" : "text-gray-400 hover:bg-slate-200"
         }`}
       >
         +

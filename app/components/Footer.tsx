@@ -1,4 +1,3 @@
-// components/Footer.tsx
 "use client";
 
 import Link from "next/link";
@@ -48,25 +47,25 @@ export default function Footer() {
   };
 
   return (
-    <footer className="bg-gray-900 text-white py-10 mt-0">
-      <div className="max-w-screen-xl mx-auto px-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+    <footer className="bg-gray-800 shadow-md py-8 mt-0 border-t border-gray-200">
+      <div className="max-w-screen-xl mx-auto px-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Newsletter */}
         <div>
-          <h4 className="text-lg font-medium mb-4 text-gray-100">Newsletter</h4>
-          <p className="text-gray-400 text-sm mb-4">Stay updated with our latest news and offers.</p>
+          <h4 className="text-lg font-semibold mb-3 text-white">Newsletter</h4>
+          <p className="text-gray-50 text-sm mb-3">Stay updated with our latest news and offers.</p>
           <form className="flex flex-col space-y-2" onSubmit={handleSubmit}>
             <input
               type="email"
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="p-2 bg-gray-800 text-gray-200 rounded text-sm border border-gray-700 focus:outline-none focus:ring-1 focus:ring-red-500"
+              className="p-2 bg-gray-100 ttext-white rounded-md text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200"
               required
               disabled={isPending}
             />
             <button
               type="submit"
-              className="p-2 bg-red-500 text-white rounded text-sm transition-all duration-300 ease-in-out hover:bg-red-600 disabled:bg-red-300 disabled:cursor-not-allowed"
+              className="p-2 bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-md text-sm font-medium transition-all duration-300 ease-in-out hover:from-red-600 hover:to-orange-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
               disabled={isPending}
             >
               {isPending ? (
@@ -98,12 +97,12 @@ export default function Footer() {
               )}
             </button>
             {message && (
-              <p className="text-green-400 text-xs mt-2 transition-opacity duration-300 ease-in-out opacity-100">
+              <p className="text-orange-400 text-xs mt-2 transition-opacity duration-300 ease-in-out opacity-100">
                 {message}
               </p>
             )}
             {error && (
-              <p className="text-red-400 text-xs mt-2 transition-opacity duration-300 ease-in-out opacity-100">
+              <p className="text-red-600 text-xs mt-2 transition-opacity duration-300 ease-in-out opacity-100">
                 {error}
               </p>
             )}
@@ -115,22 +114,22 @@ export default function Footer() {
           <div>
             <button
               onClick={() => toggleSection("quickLinks")}
-              className="w-full flex items-center justify-between text-lg font-medium text-gray-100 mb-4 focus:outline-none"
+              className="w-full flex items-center justify-between text-lg font-semibold text-white mb-3 focus:outline-none"
             >
               Quick Links
               {openSections.quickLinks ? (
-                <FaChevronUp className="text-gray-400 text-sm" />
+                <FaChevronUp className="text-white text-sm" />
               ) : (
-                <FaChevronDown className="text-gray-400 text-sm" />
+                <FaChevronDown className="text-white text-sm" />
               )}
             </button>
             {openSections.quickLinks && (
               <ul className="space-y-2 text-sm">
-                <li><Link href="/shop" className="text-gray-400 hover:text-gray-200">Shop</Link></li>
-                <li><Link href="/cart" className="text-gray-400 hover:text-gray-200">Cart</Link></li>
-                <li><Link href="/wishlist" className="text-gray-400 hover:text-gray-200">Wishlist</Link></li>
-                <li><Link href="/orders" className="text-gray-400 hover:text-gray-200">Orders</Link></li>
-                <li><Link href="/search" className="text-gray-400 hover:text-gray-200">Search</Link></li>
+                <li><Link href="/shop" className="text-white hover:text-red-500 transition-colors duration-200">Shop</Link></li>
+                <li><Link href="/cart" className="text-white hover:text-red-500 transition-colors duration-200">Cart</Link></li>
+                <li><Link href="/wishlist" className="text-white hover:text-red-500 transition-colors duration-200">Wishlist</Link></li>
+                <li><Link href="/orders" className="text-white hover:text-red-500 transition-colors duration-200">Orders</Link></li>
+                <li><Link href="/search" className="text-white hover:text-red-500 transition-colors duration-200">Search</Link></li>
               </ul>
             )}
           </div>
@@ -141,22 +140,22 @@ export default function Footer() {
           <div>
             <button
               onClick={() => toggleSection("company")}
-              className="w-full flex items-center justify-between text-lg font-medium text-gray-100 mb-4 focus:outline-none"
+              className="w-full flex items-center justify-between text-lg font-semibold text-white mb-3 focus:outline-none"
             >
               Company
               {openSections.company ? (
-                <FaChevronUp className="text-gray-400 text-sm" />
+                <FaChevronUp className="text-white text-sm" />
               ) : (
-                <FaChevronDown className="text-gray-400 text-sm" />
+                <FaChevronDown className="text-white text-sm" />
               )}
             </button>
             {openSections.company && (
               <ul className="space-y-2 text-sm">
-                <li><Link href="/about" className="text-gray-400 hover:text-gray-200">About Us</Link></li>
-                <li><Link href="/careers" className="text-gray-400 hover:text-gray-200">Careers</Link></li>
-                <li><Link href="/team" className="text-gray-400 hover:text-gray-200">Our Team</Link></li>
-                <li><Link href="/blog" className="text-gray-400 hover:text-gray-200">Blog</Link></li>
-                <li><Link href="/press" className="text-gray-400 hover:text-gray-200">Press</Link></li>
+                <li><Link href="/about" className="text-white hover:text-red-500 transition-colors duration-200">About Us</Link></li>
+                <li><Link href="/careers" className="text-white hover:text-red-500 transition-colors duration-200">Careers</Link></li>
+                <li><Link href="/team" className="text-white hover:text-red-500 transition-colors duration-200">Our Team</Link></li>
+                <li><Link href="/blog" className="text-white hover:text-red-500 transition-colors duration-200">Blog</Link></li>
+                <li><Link href="/press" className="text-white hover:text-red-500 transition-colors duration-200">Press</Link></li>
               </ul>
             )}
           </div>
@@ -167,22 +166,22 @@ export default function Footer() {
           <div>
             <button
               onClick={() => toggleSection("support")}
-              className="w-full flex items-center justify-between text-lg font-medium text-gray-100 mb-4 focus:outline-none"
+              className="w-full flex items-center justify-between text-lg font-semibold text-white mb-3 focus:outline-none"
             >
               Support
               {openSections.support ? (
-                <FaChevronUp className="text-gray-400 text-sm" />
+                <FaChevronUp className="text-white text-sm" />
               ) : (
-                <FaChevronDown className="text-gray-400 text-sm" />
+                <FaChevronDown className="text-white text-sm" />
               )}
             </button>
             {openSections.support && (
               <ul className="space-y-2 text-sm">
-                <li><Link href="/contact" className="text-gray-400 hover:text-gray-200">Contact Us</Link></li>
-                <li><Link href="/faq" className="text-gray-400 hover:text-gray-200">FAQs</Link></li>
-                <li><Link href="/terms" className="text-gray-400 hover:text-gray-200">Terms & Conditions</Link></li>
-                <li><Link href="/privacy" className="text-gray-400 hover:text-gray-200">Privacy Policy</Link></li>
-                <li><Link href="/returns" className="text-gray-400 hover:text-gray-200">Returns</Link></li>
+                <li><Link href="/contact" className="text-white hover:text-red-500 transition-colors duration-200">Contact Us</Link></li>
+                <li><Link href="/faq" className="text-white hover:text-red-500 transition-colors duration-200">FAQs</Link></li>
+                <li><Link href="/terms" className="text-white hover:text-red-500 transition-colors duration-200">Terms & Conditions</Link></li>
+                <li><Link href="/privacy" className="text-white hover:text-red-500 transition-colors duration-200">Privacy Policy</Link></li>
+                <li><Link href="/returns" className="text-white hover:text-red-500 transition-colors duration-200">Returns</Link></li>
               </ul>
             )}
           </div>
@@ -190,8 +189,8 @@ export default function Footer() {
       </div>
 
       {/* Footer Bottom */}
-      <div className="text-gray-400 py-4 mt-8 mb-12 text-center text-sm">
-      <p>© {new Date().getFullYear()} FLARE. All Rights Reserved. {isStandalone && <span> | v1.0.0</span>}</p>
+      <div className="text-white py-4 mt-6 text-center text-sm border-t border-gray-200">
+        <p>© {new Date().getFullYear()} FLARE. All Rights Reserved. {isStandalone && <span> | v1.0.0</span>}</p>
       </div>
     </footer>
   );

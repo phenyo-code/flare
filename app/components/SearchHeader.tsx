@@ -6,7 +6,7 @@ import { FiSearch, FiShare } from "react-icons/fi";
 import { IoIosArrowBack } from "react-icons/io";
 import { LuEllipsis } from "react-icons/lu";
 import { CgShoppingCart } from "react-icons/cg";
-import { useCartStore } from "../store/cartStore";
+import { useSession } from "next-auth/react";
 
 type SearchHeaderProps = {
   placeholder?: string;
@@ -17,33 +17,66 @@ export default function SearchHeader({ placeholder = "Search FLARE..." }: Search
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [cartSavings, setCartSavings] = useState(0);
-
-  const { cartItems, couponDiscount } = useCartStore();
-  const deliveryFee = 100;
-  const freeDeliveryThreshold = 1000;
+  const { data: session } = useSession();
 
   useEffect(() => {
-    const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-    setCartCount(totalItems);
+    const fetchCartData = async () => {
+      try {
+        if (!session?.user) {
+          setCartCount(0);
+          setCartSavings(0);
+          return;
+        }
 
-    const subtotal = cartItems.reduce((sum, item) => sum + item.pricePerItem * item.quantity, 0);
-    let tieredDiscountPercentage = 0;
-    if (subtotal >= 3000) tieredDiscountPercentage = 15;
-    else if (subtotal >= 2500) tieredDiscountPercentage = 10;
-    else if (subtotal >= 2000) tieredDiscountPercentage = 5;
-    const tieredDiscountAmount = tieredDiscountPercentage > 0 ? (subtotal * tieredDiscountPercentage) / 100 : 0;
+        // Fetch cart count
+        const countResponse = await fetch("/api/cart/items/count", {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        });
+        if (countResponse.ok) {
+          const countData = await countResponse.json();
+          const totalItems = countData.cartItems.reduce(
+            (sum: number, item: { quantity: number }) => sum + item.quantity,
+            0
+          );
+          setCartCount(totalItems);
+        } else {
+          console.error("Failed to fetch cart count");
+          setCartCount(0);
+        }
 
-    const totalSavings = tieredDiscountAmount + (couponDiscount || 0);
-    setCartSavings(totalSavings);
-  }, [cartItems, couponDiscount]);
+        // Fetch cart savings
+        const savingsResponse = await fetch("/api/cart/items/savings", {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        });
+        if (savingsResponse.ok) {
+          const savingsData = await savingsResponse.json();
+          setCartSavings(parseFloat(savingsData.totalSavings));
+        } else {
+          console.error("Failed to fetch savings");
+          setCartSavings(0);
+        }
+      } catch (error) {
+        console.error("Error fetching cart data:", error);
+        setCartCount(0);
+        setCartSavings(0);
+      }
+    };
+
+    fetchCartData();
+  }, [session]);
 
   const handleSearchClick = () => router.push("/search");
   const handleShareClick = () => {
     const currentUrl = window.location.href;
-    navigator.clipboard.writeText(currentUrl).then(() => alert("Link copied!")).catch((err) => {
-      console.error("Failed to copy link:", err);
-      alert("Failed to copy link: " + currentUrl);
-    });
+    navigator.clipboard
+      .writeText(currentUrl)
+      .then(() => alert("Link copied!"))
+      .catch((err) => {
+        console.error("Failed to copy link:", err);
+        alert("Failed to copy link: " + currentUrl);
+      });
   };
   const toggleMenu = () => setIsMenuOpen((prev) => !prev);
   const handleMenuNavigation = (path: string) => {
@@ -78,17 +111,18 @@ export default function SearchHeader({ placeholder = "Search FLARE..." }: Search
         <div className="flex items-center space-x-4">
           {/* Cart Icon with Count and Savings */}
           <div className="relative flex flex-col items-center">
-            <CgShoppingCart id="cart-icon"
+            <CgShoppingCart
+              id="cart-icon"
               className="text-2xl text-gray-700 cursor-pointer hover:text-red-500 transition-colors duration-200"
               onClick={() => router.push("/cart")}
             />
             {cartCount > 0 && (
               <>
-                <span className="absolute -top-2 -right-3 bg-red-500 text-white text-[8px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                <span className="absolute -top-2 -right-3 bg-red-500 text-white text-[8.5px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
                   {cartCount}
                 </span>
                 {cartSavings > 0 && (
-                  <span className="absolute -bottom-4 text-[8px] text-white bg-gradient-to-r from-red-500 to-orange-500  px-1 py-1 rounded-full font-semibold whitespace-nowrap items-center justify-center">
+                  <span className="absolute -bottom-4 text-[8.5px] text-white bg-red-500 px-1 py-1 rounded-full font-semibold whitespace-nowrap items-center justify-center">
                     - R{cartSavings.toFixed(2)}
                   </span>
                 )}

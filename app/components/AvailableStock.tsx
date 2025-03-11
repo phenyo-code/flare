@@ -6,5 +6,5 @@ export default async function AvailableStock({ sizeId }: { sizeId: string }) {
     select: { quantity: true },
   });
 
-  return <span className=" text-red-500 text-xs">{size?.quantity ?? 0} Left</span>;
+  return <span className=" text-gray-500 text-xs">{size?.quantity ?? 0} Left</span>;
 }

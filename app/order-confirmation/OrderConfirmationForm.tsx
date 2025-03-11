@@ -23,7 +23,6 @@ export default function OrderConfirmationForm({ cart, latestOrder, userId, order
 
     setIsLoading(true);
     try {
-      // Assuming orderId is passed from parent or created elsewhere
       if (!orderId) {
         throw new Error("No order ID available to start checkout.");
       }
@@ -49,8 +48,18 @@ export default function OrderConfirmationForm({ cart, latestOrder, userId, order
   else if (totalPrice >= 2000) tieredDiscountPercentage = 5;
   const tieredDiscountAmount = tieredDiscountPercentage > 0 ? Math.round((totalPrice * tieredDiscountPercentage) / 100) : 0;
   totalPrice -= tieredDiscountAmount;
+
+  // Placeholder for coupon discount (replace with actual data if available)
+  const couponDiscount = latestOrder?.coupon?.discountValue && latestOrder.coupon.discountType === "fixed"
+    ? latestOrder.coupon.discountValue
+    : latestOrder?.coupon?.discountValue && latestOrder.coupon.discountType === "percentage"
+    ? Math.round((subtotal * latestOrder.coupon.discountValue) / 100)
+    : 0;
+  totalPrice -= couponDiscount;
+
   const deliveryFee = totalPrice < 1000 ? 100 : 0;
   const totalWithDiscount = totalPrice + deliveryFee;
+  const totalSavings = tieredDiscountAmount + couponDiscount;
 
   return (
     <div className="min-h-screen bg-white">
@@ -144,18 +153,30 @@ export default function OrderConfirmationForm({ cart, latestOrder, userId, order
 
         <span className="w-full block bg-gray-100 h-2"></span>
 
-        {/* Order Summary */}
+        {/* Updated Order Summary */}
         <div className="px-6 py-4">
           <h3 className="text-sm font-semibold text-gray-800 mb-2">Order Summary</h3>
           <div className="space-y-2">
             <div className="flex justify-between">
-              <span className="text-gray-600">Original Price:</span>
+              <span className="text-gray-600">Subtotal:</span>
               <span className="text-gray-600">R{subtotal.toFixed(2)}</span>
             </div>
             {tieredDiscountAmount > 0 && (
               <div className="flex justify-between">
-                <span className="text-gray-600 text-sm">Savings ({tieredDiscountPercentage}%):</span>
+                <span className="text-gray-600 text-sm">Discount ({tieredDiscountPercentage}%):</span>
                 <span className="text-green-600">-R{tieredDiscountAmount.toFixed(2)}</span>
+              </div>
+            )}
+            {couponDiscount > 0 && (
+              <div className="flex justify-between">
+                <span className="text-gray-600 text-sm">Coupon ({latestOrder?.coupon?.code || "N/A"}):</span>
+                <span className="text-green-600">-  R{couponDiscount.toFixed(2)}</span>
+              </div>
+            )}
+            {totalSavings > 0 && (
+              <div className="flex justify-between font-semibold">
+                <span className="text-gray-800">Total Savings:</span>
+                <span className="text-green-600">-  R{totalSavings.toFixed(2)}</span>
               </div>
             )}
             {deliveryFee > 0 && (
@@ -164,7 +185,7 @@ export default function OrderConfirmationForm({ cart, latestOrder, userId, order
                 <span className="text-orange-500">R{deliveryFee.toFixed(2)}</span>
               </div>
             )}
-            <div className="flex justify-between font-bold">
+            <div className="flex justify-between font-bold pt-2 border-t border-gray-200">
               <span className="text-gray-800">Final Total:</span>
               <span className="text-red-500">R{totalWithDiscount.toFixed(2)}</span>
             </div>

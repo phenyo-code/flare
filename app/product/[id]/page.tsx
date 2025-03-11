@@ -166,7 +166,7 @@ export default async function ProductDetails({ params }: ProductPageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <SearchHeader placeholder={product ? product.filter : "Search for products..."} />
-      <div className="container bg-white mx-auto">
+      <div className="container bg-white mx-auto mt-8">
         <div className="flex flex-col lg:flex-row">
           {/* Image Slider Section */}
           <div className="w-full lg:w-1/2 flex justify-center">
