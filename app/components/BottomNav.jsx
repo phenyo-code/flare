@@ -48,7 +48,7 @@ export default function BottomNav({
           href="/cart"
           className={`flex flex-col items-center ${activePath === "/cart" ? "text-gray-800" : "text-gray-600"}`}
         >
-          <CgShoppingCart
+          <CgShoppingCart id="cart-icon"
             className={`text-3xl ${activePath === "/cart" ? "scale-110 transition-transform" : ""}`}
           />
           {totalCartItems > 0 && (

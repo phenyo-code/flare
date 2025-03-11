@@ -90,7 +90,7 @@ const Header = () => {
             </Link>
             <div className="cart-icon relative">
               <Link href="/cart" prefetch>
-                <FiShoppingCart className="text-gray-600 text-xl hover:text-gray-800 transition-colors" />
+                <FiShoppingCart id="cart-icon" className="text-gray-600 text-xl hover:text-gray-800 transition-colors" />
                 {totalCartItems > 0 && (
                   <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
                     {totalCartItems}
@@ -223,7 +223,7 @@ const Header = () => {
           </Link>
           <div className="relative flex flex-col items-center">
             <Link href="/cart" className="text-gray-600 flex flex-col items-center">
-              <CgShoppingCart className="text-3xl" />
+              <CgShoppingCart  id="cart-icon"className="text-3xl" />
               {totalCartItems > 0 && (
                 <span className="absolute top-[-6px] right-[-6px] w-3.5 h-3.5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
                   {totalCartItems}

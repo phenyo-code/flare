@@ -10,6 +10,7 @@ interface CartTotalProps {
 
 export default function CartTotal({ total }: CartTotalProps) {
   const [finalTotal, setFinalTotal] = useState(total);
+  const [subtotal, setSubtotal] = useState(total); // Add subtotal state
   const [tieredDiscount, setTieredDiscount] = useState(0);
   const { cartItems, isUpdating, finalTotal: storeFinalTotal } = useCartStore();
   const deliveryFee = 100;
@@ -19,16 +20,20 @@ export default function CartTotal({ total }: CartTotalProps) {
     let newTotal = total;
     let tieredDiscountPercentage = 0;
 
-    const subtotal = total - (total < freeDeliveryThreshold ? deliveryFee : 0);
-    if (subtotal >= 3000) {
+    // Calculate subtotal (total minus delivery fee if applicable)
+    const calculatedSubtotal = total - (total < freeDeliveryThreshold ? deliveryFee : 0);
+    setSubtotal(calculatedSubtotal);
+
+    // Calculate tiered discount based on subtotal
+    if (calculatedSubtotal >= 3000) {
       tieredDiscountPercentage = 15;
-    } else if (subtotal >= 2500) {
+    } else if (calculatedSubtotal >= 2500) {
       tieredDiscountPercentage = 10;
-    } else if (subtotal >= 2000) {
+    } else if (calculatedSubtotal >= 2000) {
       tieredDiscountPercentage = 5;
     }
 
-    const tieredDiscountAmount = tieredDiscountPercentage > 0 ? (subtotal * tieredDiscountPercentage) / 100 : 0;
+    const tieredDiscountAmount = tieredDiscountPercentage > 0 ? (calculatedSubtotal * tieredDiscountPercentage) / 100 : 0;
     newTotal -= tieredDiscountAmount;
     setTieredDiscount(tieredDiscountAmount);
 
@@ -59,27 +64,68 @@ export default function CartTotal({ total }: CartTotalProps) {
   }, [total, cartItems, isUpdating, storeFinalTotal, finalTotal]);
 
   return (
-    <div className="mt-6 flex flex-col items-end">
-      {finalTotal >= freeDeliveryThreshold ? (
-        <div className="flex items-center">
-          <FaTruck className="text-sm text-green-600 mr-2" />
-          <p className="text-green-600 text-sm font-semibold">Free Delivery</p>
+    <div className="mt-6 p-4 bg-white rounded-lg shadow-md border border-gray-200">
+      <div className="space-y-3">
+        {/* Delivery Info */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <FaTruck
+              className={`text-lg ${
+                finalTotal >= freeDeliveryThreshold ? "text-green-600" : "text-red-500"
+              } mr-2`}
+            />
+            <p
+              className={`text-sm font-medium ${
+                finalTotal >= freeDeliveryThreshold ? "text-green-600" : "text-red-500"
+              }`}
+            >
+              {finalTotal >= freeDeliveryThreshold
+                ? "Free Delivery!"
+                : `+ Delivery Fee`}
+            </p>
+          </div>
+          {finalTotal < freeDeliveryThreshold && (
+            <p className="text-xs text-gray-500">
+              Spend R{(freeDeliveryThreshold - finalTotal).toFixed(2)} more for free delivery
+            </p>
+          )}
         </div>
-      ) : (
-        <div className="flex items-center">
-          <FaTruck className="text-sm text-red-500 mr-2" />
-          <p className="text-red-500 text-sm">+R{deliveryFee} for delivery</p>
-        </div>
-      )}
-      {tieredDiscount > 0 && (
-        <div className="flex items-center">
-          <FaTags className="text-sm text-green-600 mr-2" />
-          <p className="text-sm text-green-600 font-semibold">
-            Tiered Savings: R{tieredDiscount.toFixed(2)}
+
+        {/* Tiered Discount */}
+        {tieredDiscount > 0 && (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <FaTags className="text-lg text-green-600 mr-2" />
+              <p className="text-sm font-medium text-green-600">
+               Saved: R{tieredDiscount.toFixed(2)}
+              </p>
+            </div>
+            <p className="text-xs text-gray-500">
+              {subtotal >= 3000 ? "15% off" : subtotal >= 2500 ? "10% off" : "5% off"} applied
+            </p>
+          </div>
+        )}
+
+        {/* Final Total */}
+        <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+          <p className="text-lg font-semibold text-gray-800">Final Total</p>
+          <p className="text-xl font-bold text-gray-900 animate-pulse-when-updating">
+            R{finalTotal.toFixed(2)}
           </p>
         </div>
-      )}
-      <p className="text-xl font-semibold">Total: R{finalTotal.toFixed(2)}</p>
+      </div>
+
+      {/* Custom Animation */}
+      <style jsx>{`
+        @keyframes pulse {
+          0% { opacity: 1; }
+          50% { opacity: 0.7; }
+          100% { opacity: 1; }
+        }
+        .animate-pulse-when-updating {
+          ${isUpdating() ? "animation: pulse 1.5s infinite;" : ""}
+        }
+      `}</style>
     </div>
   );
 }

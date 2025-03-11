@@ -218,3 +218,23 @@ body.dark {
 .animate-fade-in {
   animation: fade-in 0.5s ease-out;
 }
+
+/* globals.css */
+@keyframes fly-to-cart {
+  0% {
+    transform: scale(1) translate(0, 0);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.8);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(0.5) translate(var(--translate-x), var(--translate-y));
+    opacity: 0;
+  }
+}
+
+.animate-fly-to-cart {
+  animation: fly-to-cart 0.8s ease-out forwards;
+}

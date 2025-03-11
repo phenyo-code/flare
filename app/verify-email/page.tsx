@@ -1,4 +1,4 @@
-"use client"; // Make it a client component for state and effects
+"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -8,10 +8,10 @@ export default function VerifyEmailPage() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
 
-  const [timeLeft, setTimeLeft] = useState(30); // Start with 30 seconds
+  const [timeLeft, setTimeLeft] = useState(30);
   const [isChecking, setIsChecking] = useState(true);
 
-  // Redirect to signup if no email is provided
+  // Redirect to signup if no email
   useEffect(() => {
     if (!email) {
       router.push("/signup");
@@ -26,7 +26,7 @@ export default function VerifyEmailPage() {
       setTimeLeft((prev) => prev - 1);
     }, 1000);
 
-    return () => clearInterval(timer); // Cleanup on unmount
+    return () => clearInterval(timer);
   }, [timeLeft]);
 
   // Check verification status every 5 seconds
@@ -47,54 +47,68 @@ export default function VerifyEmailPage() {
       }
     };
 
-    checkVerification(); // Check immediately
-    const interval = setInterval(checkVerification, 5000); // Then every 5 seconds
+    checkVerification();
+    const interval = setInterval(checkVerification, 5000);
 
-    return () => clearInterval(interval); // Cleanup on unmount
+    return () => clearInterval(interval);
   }, [email, router, isChecking]);
 
-  // Reset timer when it hits 0
+  // Resend verification email
   const handleResend = async () => {
     try {
       await fetch(`/api/resend-verification?email=${encodeURIComponent(email || "")}`);
-      setTimeLeft(30); // Reset timer
+      setTimeLeft(30);
     } catch (error) {
       console.error("Error resending verification:", error);
     }
   };
 
-  if (!email) return null; // Render nothing while redirecting
+  if (!email) return null;
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-md text-center space-y-6">
-        <h1 className="text-3xl font-bold text-gray-800">Verify Your Email</h1>
-        <p className="text-gray-600">
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 via-white to-gray-200 flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8 space-y-6 transform transition-all duration-300 hover:shadow-xl">
+        {/* Header */}
+        <h1 className="text-2xl font-bold text-center text-gray-800">Verify Your Email</h1>
+        <p className="text-center text-sm text-gray-500">
           We’ve sent a verification email to{" "}
-          <strong className="text-gray-800">{email}</strong>. Please check your inbox (and spam/junk folder) and click the link to verify your account.
+          <span className="font-medium text-gray-700">{email}</span>. Check your inbox (and spam/junk folder) to verify your account.
         </p>
-        <p className="text-gray-500">
-          Once verified, you’ll be automatically redirected to the login page.
+        <p className="text-center text-sm text-gray-500">
+          Once verified, you’ll be redirected to sign in automatically.
         </p>
-        <div className="mt-4">
+
+        {/* Resend Timer/Button */}
+        <div className="text-center">
           {timeLeft > 0 ? (
-            <p className="text-gray-500">
-              Resend available in <span className="font-semibold text-gray-700">{timeLeft}</span> seconds
+            <p className="text-sm text-gray-600">
+              Resend available in{" "}
+              <span className="font-semibold text-red-500">{timeLeft}</span> seconds
             </p>
           ) : (
             <button
               onClick={handleResend}
-              className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+              className="px-6 py-2 bg-gradient-to-r from-red-500 to-orange-500 text-white font-semibold rounded-full hover:from-red-600 hover:to-orange-600 transition-all duration-200"
             >
               Resend Verification Email
             </button>
           )}
         </div>
+
+        {/* Spinner */}
         {isChecking && (
-          <div className="mt-4 flex justify-center">
-            <div className="w-6 h-6 border-4 border-t-transparent border-red-500 rounded-full animate-spin"></div>
+          <div className="flex justify-center">
+            <div className="w-8 h-8 border-4 border-t-red-500 border-gray-200 rounded-full animate-spin"></div>
           </div>
         )}
+
+        {/* Back to Signup */}
+        <div className="text-center text-sm text-gray-600">
+          Not your email?{" "}
+          <a href="/signup" className="text-red-500 hover:text-red-600 transition-colors duration-200">
+            Sign up again
+          </a>
+        </div>
       </div>
     </div>
   );

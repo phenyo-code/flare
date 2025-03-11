@@ -8,8 +8,6 @@ import { authOptions } from "@/api/auth/[...nextauth]/options";
 import SearchHeader from "@/components/SearchHeader";
 import { Suspense } from "react";
 import BottomNavWrapper from "@/components/BottomNavWrapper";
-import CouponSection from "@/components/CouponSection";
-import CouponInput from "@/components/CouponInput";
 
 const RemoveFromCartButton = dynamic(() => import("@/product/[id]/RemoveFromCartButton"));
 const CartTotal = dynamic(() => import("@/components/CartTotal"));
@@ -154,7 +152,7 @@ async function CartContent({ session }: { session: any }) {
             <CartTotal total={totalWithDelivery} />
           </Suspense>
           <Link href="/order-confirmation">
-            <button className="w-full bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-6 mt-4 rounded-md">
+            <button className="w-full mt-4 bg-gradient-to-r from-red-500 to-orange-500 text-white font-bold py-3 rounded-full hover:from-red-600 hover:to-orange-600 transition-all duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed">
               CheckOut
             </button>
           </Link>

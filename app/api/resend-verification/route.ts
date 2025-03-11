@@ -1,10 +1,7 @@
-// app/api/resend-verification/route.ts
-"use server";
-
-import { prisma } from "@/lib/db/prisma"; // Adjust path
+import { prisma } from "@/lib/db/prisma";
 import { NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
-import { sendVerificationEmail } from "@/lib/email"; // Adjust path
+import { sendVerificationEmail } from "@/lib/email";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -20,11 +17,16 @@ export async function GET(request: Request) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      // Don't reveal if the email exists for security
+      return NextResponse.redirect(
+        new URL("/resend-verification-sent?status=success", process.env.NEXTAUTH_URL || "http://localhost:3000")
+      );
     }
 
     if (user.emailVerified) {
-      return NextResponse.json({ error: "Email already verified" }, { status: 400 });
+      return NextResponse.redirect(
+        new URL("/resend-verification-sent?status=already_verified", process.env.NEXTAUTH_URL || "http://localhost:3000")
+      );
     }
 
     // Generate a new token
@@ -37,9 +39,14 @@ export async function GET(request: Request) {
     // Send the email
     await sendVerificationEmail(email, newToken);
 
-    return NextResponse.redirect(new URL(`/verify-email?email=${encodeURIComponent(email)}`, process.env.NEXTAUTH_URL));
+    // Redirect to a confirmation page
+    return NextResponse.redirect(
+      new URL("/resend-verification-sent?status=success", process.env.NEXTAUTH_URL || "http://localhost:3000")
+    );
   } catch (error) {
     console.error("Resend verification error:", error);
-    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
+    return NextResponse.redirect(
+      new URL("/resend-verification-sent?status=error", process.env.NEXTAUTH_URL || "http://localhost:3000")
+    );
   }
 }
