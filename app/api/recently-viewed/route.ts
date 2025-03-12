@@ -1,22 +1,27 @@
+// app/api/recently-viewed/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 
 export async function POST(req: NextRequest) {
-  try {
-    const { filters } = await req.json();
-    console.log("API received filters:", filters);
-    if (!Array.isArray(filters) || filters.length === 0) {
-      return NextResponse.json([], { status: 200 });
-    }
+  const { ids } = await req.json();
 
-    const products = await prisma.product.findMany({
-      where: { filter: { in: filters } },
-      include: { sizes: true },
-    });
-    console.log("API returning products:", products);
-    return NextResponse.json(products, { status: 200 });
-  } catch (error) {
-    console.error("API error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return NextResponse.json([]);
   }
+
+  const products = await prisma.product.findMany({
+    where: { id: { in: ids } },
+    include: {
+      sizes: {
+        select: { id: true, size: true, quantity: true, measurement: true },
+      },
+    },
+  });
+
+  // Preserve order from localStorage
+  const orderedProducts = ids
+    .map((id: string) => products.find((p) => p.id === id))
+    .filter(Boolean);
+
+  return NextResponse.json(orderedProducts);
 }

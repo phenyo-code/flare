@@ -12,6 +12,8 @@ import ImageWrapper from "./ImageWrapper";
 import Horizontal from "@/components/Horizontal";
 import { FaBoxOpen, FaTruck } from "react-icons/fa";
 import MatchingProducts from "@/components/MatchingProducts";
+import AddToWishlistButton from "@/components/AddToWishlistButton";
+import ReturnPolicyTrigger from "./ReturnPolicyTrigger";
 
 type ProductPageProps = {
   params: Promise<{ id: string }>;
@@ -172,12 +174,14 @@ export default async function ProductDetails({ params }: ProductPageProps) {
           <div className="w-full lg:w-1/2 flex justify-center">
             <ImageWrapper images={product.images} />
           </div>
-
+  
+         
           {/* Product Details Section */}
           <div className="w-full lg:w-1/2 lg:pl-8 mt-2">
-            <h3 className="text-2xl text-red-500 mt-2 ml-4 font-bold">
-              R{product.price}
-            </h3>
+          <div className="flex items-center justify-between ml-4 mr-4">
+              <h3 className="text-2xl text-red-500 font-bold">R{product.price}</h3>
+              <AddToWishlistButton productId={product.id} />
+            </div>
 
             {product.Originalprice && discount > 0 && (
               <p className="border border-red-300 rounded-md max-w-max font-semibold text-xs sm:text-xs px-2 text-red-400 ml-4 mb-2 uppercase">
@@ -201,7 +205,7 @@ export default async function ProductDetails({ params }: ProductPageProps) {
             <span className="w-full block bg-gray-100 h-2"></span>
 
             {session?.user && user && (
-              <div className="flex p-4 rounded-md border-t border-gray-100">
+              <div className=" p-4 rounded-md border-t border-gray-100 ">
                 <div className="block">
                   <Link href="/profile">
                     <p className="text-sm font-semibold overflow-hidden text-ellipsis whitespace-nowrap mr-6">
@@ -217,10 +221,7 @@ export default async function ProductDetails({ params }: ProductPageProps) {
                   <div className="pb-2 w-full">
                     <p className="text-xs text-gray-500 ml-6 mt-2">3-7 business days</p>
                   </div>
-                  <div className="flex items-center mt-2">
-                    <FaBoxOpen className="text-gray-600" />
-                    <p className="text-xs text-gray-400 mx-2">Return Policy</p>
-                  </div>
+                  <ReturnPolicyTrigger />
                 </div>
               </div>
             )}
@@ -264,6 +265,22 @@ export default async function ProductDetails({ params }: ProductPageProps) {
       </div>
       <div className="mt-8">
         <Footer />
+
+        <script
+      dangerouslySetInnerHTML={{
+        __html: `
+          (function() {
+            const viewed = JSON.parse(localStorage.getItem("recentlyViewed") || "[]");
+            const productId = "${product.id}";
+            if (!viewed.includes(productId)) {
+              viewed.unshift(productId);
+              viewed.splice(5);
+              localStorage.setItem("recentlyViewed", JSON.stringify(viewed));
+            }
+          })();
+        `,
+      }}
+    />
       </div>
     </div>
   );

@@ -1,4 +1,3 @@
-// app/orders/page.tsx
 import { prisma } from "../lib/db/prisma";
 import Link from "next/link";
 import SearchHeader from "../components/SearchHeader";
@@ -10,9 +9,24 @@ import { IoIosArrowBack } from "react-icons/io";
 export default async function OrdersPage() {
   const session = await getServerSession(authOptions);
 
+  // Define the statuses you want to show
+  const allowedStatuses = [
+    "order submitted",
+    "preparing",
+    "packaged",
+    "shipped",
+    "delivered",
+    "canceled",
+  ];
+
   const orders = session
     ? await prisma.order.findMany({
-        where: { userId: session.user.id },
+        where: {
+          userId: session.user.id,
+          status: {
+            in: allowedStatuses, // Only include orders with these statuses
+          },
+        },
         orderBy: { createdAt: "desc" },
         include: {
           items: {
@@ -98,8 +112,7 @@ export default async function OrdersPage() {
                             <div className="p-4">
                               <p className="text-gray-800 font-medium whitespace-nowrap text-ellipsis">{item.product.name}</p>
                               <div className="flex items-center mt-1">
-                                <p className="text-gray-500 text-sm">Size: {item.size?.size || "N/A" }   x {item.quantity} </p>
-                          
+                                <p className="text-gray-500 text-sm">Size: {item.size?.size || "N/A"} x {item.quantity}</p>
                               </div>
                               <p className="text-orange-500 font-semibold mt-2">R{(item.price * item.quantity).toFixed(2)}</p>
                             </div>
