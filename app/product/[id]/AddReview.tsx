@@ -95,7 +95,7 @@ export function AddReview({ productId }: { productId: string }) {
       {!showForm && (
         <button
           onClick={() => setShowForm(true)}
-          className="text-red-600 mt-4 mx-4 bg-red-300 py-3 px-4 mb-2 rounded-full"
+          className="w-full  text-white py-3 px-4 mb-2 rounded-full bg-gradient-to-r from-orange-500 to-red-500 "
         >
           Write a Review
         </button>

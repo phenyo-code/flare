@@ -1,3 +1,4 @@
+// components/SearchHeader.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -7,6 +8,7 @@ import { IoIosArrowBack } from "react-icons/io";
 import { LuEllipsis } from "react-icons/lu";
 import { CgShoppingCart } from "react-icons/cg";
 import { useSession } from "next-auth/react";
+import { FaWhatsapp, FaTwitter, FaFacebook, FaLink } from "react-icons/fa";
 
 type SearchHeaderProps = {
   placeholder?: string;
@@ -17,6 +19,7 @@ export default function SearchHeader({ placeholder = "Search FLARE..." }: Search
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [cartSavings, setCartSavings] = useState(0);
+  const [isShareOpen, setIsShareOpen] = useState(false);
   const { data: session } = useSession();
 
   useEffect(() => {
@@ -28,7 +31,6 @@ export default function SearchHeader({ placeholder = "Search FLARE..." }: Search
           return;
         }
 
-        // Fetch cart count
         const countResponse = await fetch("/api/cart/items/count", {
           method: "GET",
           headers: { "Content-Type": "application/json" },
@@ -45,7 +47,6 @@ export default function SearchHeader({ placeholder = "Search FLARE..." }: Search
           setCartCount(0);
         }
 
-        // Fetch cart savings
         const savingsResponse = await fetch("/api/cart/items/savings", {
           method: "GET",
           headers: { "Content-Type": "application/json" },
@@ -68,16 +69,38 @@ export default function SearchHeader({ placeholder = "Search FLARE..." }: Search
   }, [session]);
 
   const handleSearchClick = () => router.push("/search");
+
   const handleShareClick = () => {
+    const currentUrl = window.location.href;
+    const shareData = {
+      title: document.title,
+      text: "Check out a product I found on FLARE!",
+      url: currentUrl,
+    };
+
+    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      navigator
+        .share(shareData)
+        .catch((err) => console.error("Share failed:", err));
+    } else {
+      setIsShareOpen(true);
+    }
+  };
+
+  const handleCopyLink = () => {
     const currentUrl = window.location.href;
     navigator.clipboard
       .writeText(currentUrl)
-      .then(() => alert("Link copied!"))
+      .then(() => {
+        alert("Link copied!");
+        setIsShareOpen(false);
+      })
       .catch((err) => {
         console.error("Failed to copy link:", err);
         alert("Failed to copy link: " + currentUrl);
       });
   };
+
   const toggleMenu = () => setIsMenuOpen((prev) => !prev);
   const handleMenuNavigation = (path: string) => {
     router.push(path);
@@ -87,13 +110,11 @@ export default function SearchHeader({ placeholder = "Search FLARE..." }: Search
   return (
     <div className="fixed top-0 left-0 w-full z-50 bg-white shadow-md border-b border-gray-200">
       <div className="flex items-center justify-between px-4 py-3 max-w-screen-xl mx-auto">
-        {/* Back Arrow */}
         <IoIosArrowBack
           onClick={() => router.back()}
           className="text-2xl text-gray-700 cursor-pointer hover:text-red-500 transition-colors duration-200"
         />
 
-        {/* Search Bar */}
         <div className="flex flex-grow mx-4 items-center border border-gray-200 rounded-lg bg-gray-50 overflow-hidden focus-within:ring-2 focus-within:ring-red-500 transition-all duration-200">
           <input
             type="text"
@@ -107,9 +128,7 @@ export default function SearchHeader({ placeholder = "Search FLARE..." }: Search
           </button>
         </div>
 
-        {/* Right Side Icons */}
         <div className="flex items-center space-x-4">
-          {/* Cart Icon with Count and Savings */}
           <div className="relative flex flex-col items-center">
             <CgShoppingCart
               id="cart-icon"
@@ -130,13 +149,11 @@ export default function SearchHeader({ placeholder = "Search FLARE..." }: Search
             )}
           </div>
 
-          {/* Share Icon */}
           <FiShare
             className="text-2xl text-gray-700 cursor-pointer hover:text-red-500 transition-colors duration-200"
             onClick={handleShareClick}
           />
 
-          {/* Three Dots Menu */}
           <div className="relative">
             <LuEllipsis
               className="text-2xl text-gray-700 cursor-pointer hover:text-red-500 transition-colors duration-200"
@@ -169,6 +186,81 @@ export default function SearchHeader({ placeholder = "Search FLARE..." }: Search
           </div>
         </div>
       </div>
+
+      {/* Bottom Sheet for Sharing */}
+      {isShareOpen && (
+        <>
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-50"
+            onClick={() => setIsShareOpen(false)}
+          />
+          <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-lg shadow-lg z-50 max-w-screen-xl mx-auto p-4 animate-slide-up">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">Share</h3>
+              <button
+                className="text-gray-500 hover:text-red-500"
+                onClick={() => setIsShareOpen(false)}
+              >
+                ✕
+              </button>
+            </div>
+            <p className="text-gray-700 text-center mb-4">
+              Check out a product I found on FLARE!
+            </p>
+            <div className="grid grid-cols-3 gap-4">
+              <button
+                className="flex flex-col items-center text-gray-700 hover:text-green-500 transition-colors duration-200"
+                onClick={() =>
+                  window.open(
+                    `https://api.whatsapp.com/send?text=${encodeURIComponent(
+                      "Check out a product I found on FLARE! " + window.location.href
+                    )}`,
+                    "_blank"
+                  )
+                }
+              >
+                <FaWhatsapp className="text-2xl" />
+                <span className="text-sm mt-1">WhatsApp</span>
+              </button>
+              <button
+                className="flex flex-col items-center text-gray-700 hover:text-blue-400 transition-colors duration-200"
+                onClick={() =>
+                  window.open(
+                    `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+                      "Check out a product I found on FLARE! " + window.location.href
+                    )}`,
+                    "_blank"
+                  )
+                }
+              >
+                <FaTwitter className="text-2xl" />
+                <span className="text-sm mt-1">Twitter</span>
+              </button>
+              <button
+                className="flex flex-col items-center text-gray-700 hover:text-blue-600 transition-colors duration-200"
+                onClick={() =>
+                  window.open(
+                    `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+                      window.location.href
+                    )}`,
+                    "_blank"
+                  )
+                }
+              >
+                <FaFacebook className="text-2xl" />
+                <span className="text-sm mt-1">Facebook</span>
+              </button>
+              <button
+                className="flex flex-col items-center text-gray-700 hover:text-red-500 transition-colors duration-200"
+                onClick={handleCopyLink}
+              >
+                <FaLink className="text-2xl" />
+                <span className="text-sm mt-1">Copy Link</span>
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

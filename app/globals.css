@@ -220,21 +220,35 @@ body.dark {
 }
 
 /* globals.css */
-@keyframes fly-to-cart {
+@keyframes fly-to-top {
   0% {
-    transform: scale(1) translate(0, 0);
+    transform: scale(1) translateY(0);
     opacity: 1;
   }
   50% {
-    transform: scale(0.8);
+    transform: scale(0.8) translateY(-50%);
     opacity: 0.8;
   }
   100% {
-    transform: scale(0.5) translate(var(--translate-x), var(--translate-y));
+    transform: scale(0.5) translateY(-100vh); /* Moves straight up */
     opacity: 0;
   }
 }
 
-.animate-fly-to-cart {
-  animation: fly-to-cart 0.8s ease-out forwards;
+.animate-fly-to-top {
+  animation: fly-to-top 0.8s ease-out forwards;
+}
+
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
 }
