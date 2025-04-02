@@ -38,7 +38,7 @@ Node.js, Prisma ORM
 MongoDB (via Prisma)
 
 ### Payment Gateway: 
-Stripe (via Stripe Elements)
+PayU (via CheckOut )
 
 ### Authentication: 
 NextAuth.js
