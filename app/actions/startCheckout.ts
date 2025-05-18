@@ -1,12 +1,18 @@
-// actions/checkout.ts (assuming this is the file path)
 "use server";
 
-import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/db/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/api/auth/[...nextauth]/options";
 import { redirect } from "next/navigation";
 import { ObjectId } from "mongodb";
+import crypto from "crypto"; // For generating PayFast signature
+
+// PayFast configuration (replace with your actual credentials in .env)
+const PAYFAST_MERCHANT_ID = process.env.PAYFAST_MERCHANT_ID as string;
+const PAYFAST_MERCHANT_KEY = process.env.PAYFAST_MERCHANT_KEY as string;
+const PAYFAST_URL = process.env.PAYFAST_SANDBOX === "true"
+  ? "https://sandbox.payfast.co.za/eng/process"
+  : "https://www.payfast.co.za/eng/process";
 
 export async function startCheckout(orderId: string) {
   const session = await getServerSession(authOptions);
@@ -32,7 +38,7 @@ export async function startCheckout(orderId: string) {
     include: {
       user: true,
       items: { include: { product: true } },
-      coupon: true, // Include coupon details
+      coupon: true,
     },
   });
 
@@ -81,35 +87,45 @@ export async function startCheckout(orderId: string) {
     where: { id: orderObjectId.toString() },
     data: {
       totalPrice: finalPrice,
-      discountApplied: tieredDiscountAmount + couponDiscountAmount, // Store total discount
+      discountApplied: tieredDiscountAmount + couponDiscountAmount,
     },
   });
 
-  // Create Stripe Checkout session with updated total
-  const checkoutSession = await stripe.checkout.sessions.create({
-    payment_method_types: ["card"],
-    mode: "payment",
-    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/check-out?success=true&status=completed&orderId=${order.id}`,
+  // Prepare PayFast payment data
+  const paymentData: Record<string, string> = {
+    merchant_id: PAYFAST_MERCHANT_ID,
+    merchant_key: PAYFAST_MERCHANT_KEY,
+    return_url: `${process.env.NEXT_PUBLIC_APP_URL}/check-out?success=true&status=completed&orderId=${order.id}`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/cart`,
-    customer_email: order.user.email,
-    metadata: { orderId: order.id },
-    line_items: [
-      {
-        price_data: {
-          currency: "zar",
-          product_data: {
-            name: "Your Order",
-            description:
-              tieredDiscountAmount > 0 || couponDiscountAmount > 0
-                ? `Saved: R${(tieredDiscountAmount + couponDiscountAmount).toFixed(2)}`
-                : undefined,
-          },
-          unit_amount: Math.round(finalPrice * 100), // Ensure it's an integer for Stripe
-        },
-        quantity: 1,
-      },
-    ],
-  });
+    notify_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/payfast/notify`, // You’ll need to create this endpoint
+    name_first: order.user.name?.split(" ")[0] || "",
+    email_address: order.user.email,
+    m_payment_id: order.id, // Unique order ID for your reference
+    amount: finalPrice.toFixed(2), // PayFast expects 2 decimal places
+    item_name: "Your Order",
+    item_description:
+      tieredDiscountAmount > 0 || couponDiscountAmount > 0
+        ? `Saved: R${(tieredDiscountAmount + couponDiscountAmount).toFixed(2)}`
+        : "",
+  };
 
-  redirect(checkoutSession.url!);
+  // Generate PayFast signature
+  const generateSignature = (data: Record<string, string>) => {
+    const sortedData = Object.keys(data)
+      .sort()
+      .map((key) => `${key}=${encodeURIComponent(data[key]).replace(/%20/g, "+")}`)
+      .join("&");
+    return crypto.createHash("md5").update(sortedData).digest("hex");
+  };
+
+  paymentData.signature = generateSignature(paymentData);
+
+  // Construct the PayFast payment URL with query parameters
+  const queryString = Object.keys(paymentData)
+    .map((key) => `${key}=${encodeURIComponent(paymentData[key])}`)
+    .join("&");
+  const paymentUrl = `${PAYFAST_URL}?${queryString}`;
+
+  // Redirect user to PayFast payment page
+  redirect(paymentUrl);
 }

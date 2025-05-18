@@ -5,7 +5,6 @@ import { authOptions } from "@/api/auth/[...nextauth]/options";
 import Link from "next/link";
 import Sizes from "./Sizes";
 import SearchHeader from "@/components/SearchHeader";
-import Footer from "@/components/Footer";
 import { notFound } from "next/navigation";
 import Reviews from "./Reviews";
 import ImageWrapper from "./ImageWrapper";
@@ -264,7 +263,6 @@ export default async function ProductDetails({ params }: ProductPageProps) {
         </div>
       </div>
       <div className="mt-8">
-        <Footer />
 
         <script
       dangerouslySetInnerHTML={{
