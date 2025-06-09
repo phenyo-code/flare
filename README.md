@@ -101,6 +101,8 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
 
+## Environment Variables
+
 
 Set up the environment variables by creating a .env file at the root of the project:  (.env.local  and   .env.production )
 
@@ -130,6 +132,8 @@ Or test individual server action as follows
 ```bash
 npx jest test/actions/addProduct.test.ts
 ```
+
+---
 
 
 ## Acknowledgements
