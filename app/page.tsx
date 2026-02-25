@@ -176,7 +176,6 @@ export default async function Home() {
           cartId={cart?.id}
         />
       </div>
-      <InstallPrompt />
     </div>
   );
 }
